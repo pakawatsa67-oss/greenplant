@@ -6,5 +6,6 @@ Disallow: /#/admin
 Disallow: /#/orders
 Disallow: /#/checkout
 Disallow: /#/cart
+Disallow: /#/wish
 
-Sitemap: https://greenplant.example/sitemap.xml
+Sitemap: https://greenplant-woad.vercel.app/sitemap.xml
