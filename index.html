@@ -218,6 +218,29 @@ tr:last-child td{border-bottom:0}
 .overlay{position:fixed;inset:0;background:rgba(15,46,35,.5);backdrop-filter:blur(3px);z-index:100;display:grid;place-items:center;padding:18px;overflow:auto}
 .modal{background:var(--paper);border-radius:20px;max-width:880px;width:100%;padding:24px;position:relative;max-height:92vh;overflow:auto}
 .modal.narrow{max-width:440px}
+.modal.authmodal{max-width:840px;padding:0;overflow:hidden}
+.modal.authmodal.small{max-width:700px}
+.authwrap{display:grid;grid-template-columns:.85fr 1.15fr}
+.authside{background:var(--forest);color:#BFD7C6;padding:30px 26px;display:flex;flex-direction:column;justify-content:center}
+.authside h3{font-family:var(--display);color:#fff;font-size:21px;margin:6px 0 16px;font-weight:600;text-align:center;line-height:1.45}
+.authside ul{list-style:none;margin:0;padding:0;display:grid;gap:13px}
+.authside li{display:grid;gap:2px;padding-left:24px;position:relative;font-size:13px}
+.authside li:before{content:'✓';position:absolute;left:0;top:0;color:#9AD3AC;font-weight:700}
+.authside li b{color:#fff;font-size:14px;font-weight:600}
+.authside li span{color:#8FAF9A;line-height:1.5}
+.authform{padding:26px 28px;max-height:88vh;overflow:auto}
+.fmsg{font-size:12.5px;color:var(--ink-2);margin-top:5px;min-height:16px}
+.fmsg.bad{color:var(--danger)}
+.fmsg.good{color:var(--leaf)}
+input.inv,textarea.inv{border-color:var(--danger)}
+.pwwrap{position:relative}
+.pwtog{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;
+  color:var(--ink-2);font-size:12.5px;padding:4px 6px;font-weight:600}
+.pwtog:hover{color:var(--forest)}
+.pwbar{height:5px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:8px}
+.pwfill{display:block;height:100%;width:0;transition:width .25s;background:var(--danger)}
+.pwfill.lv0{background:#C9483A}.pwfill.lv1{background:#D98324}
+.pwfill.lv2{background:#C9A227}.pwfill.lv3{background:#5A9E6B}.pwfill.lv4{background:var(--leaf)}
 .closex{position:absolute;top:14px;right:14px;background:var(--card);border:1px solid var(--line);border-radius:9px;width:34px;height:34px}
 .pdetail{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .pdetail .big{background:linear-gradient(170deg,#EDF3EC,#DCE8DA);border-radius:16px;aspect-ratio:1;display:grid;place-items:center}
@@ -299,6 +322,8 @@ input[type=file]{border:1px dashed var(--line);background:var(--card);border-rad
 input[type=file]::file-selector-button{border:0;background:var(--forest);color:#fff;border-radius:7px;padding:5px 11px;margin-right:10px;font-family:inherit;font-size:13px;cursor:pointer}
 
 @media (max-width:900px){
+  .authwrap{grid-template-columns:1fr}
+  .authside{display:none}
   .nl{grid-template-columns:1fr}
   .hero .inner{grid-template-columns:1fr;padding:34px 26px}
   .heroart{display:none}
@@ -579,16 +604,16 @@ async function doLogin(){
 }
 
 async function doRegister(){
-  var n=$('rn').value.trim(), e2=$('re').value.trim(), t=$('rt').value.trim(),
-      a=$('ra').value.trim(), p=$('rp').value;
+  var n=REG.name.trim(), e2=REG.email.trim(), t=REG.phone.trim(), a=REG.addr.trim(), p=REG.pass;
   if(!n||!e2||!t||!a||!p){ toast('กรอกข้อมูลให้ครบทุกช่อง'); return; }
+  if(!REG.accept){ toast('กรุณายอมรับเงื่อนไขและนโยบายความเป็นส่วนตัวก่อนสมัคร'); return; }
   if(p.length<6){ toast('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร'); return; }
   if(e2.indexOf('@')<0){ toast('รูปแบบอีเมลไม่ถูกต้อง'); return; }
   setBusy(true);
   try{
     var r = await sb.auth.signUp({
       email:e2, password:p,
-      options:{ data:{ full_name:n, phone:t, address:a } }
+      options:{ data:{ full_name:n, phone:t, address:a, consent_at:(new Date()).toISOString() } }
     });
     if(r.error) throw r.error;
     if(!r.data.session){
@@ -2038,31 +2063,130 @@ function acctPrivacy(){
 }
 
 /* ---------- 33) เข้าสู่ระบบ / สมัครสมาชิก ---------- */
+
+/* ตรวจความถูกต้องแบบทันทีที่พิมพ์ */
+var REG = {name:'', email:'', phone:'', addr:'', pass:'', accept:false};
+function pwScore(p){
+  var s = 0;
+  if(p.length >= 6) s++;
+  if(p.length >= 10) s++;
+  if(/[A-Za-z]/.test(p) && /[0-9]/.test(p)) s++;
+  if(/[^A-Za-z0-9]/.test(p)) s++;
+  return Math.min(s, 4);
+}
+var PW_LABEL = ['สั้นเกินไป','พอใช้','ปานกลาง','ดี','แข็งแรงมาก'];
+function regCheck(k){
+  var v = REG[k];
+  if(k==='name')  return v.trim().length>=2 ? '' : 'กรอกชื่อและนามสกุล';
+  if(k==='email') return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? '' : 'รูปแบบอีเมลไม่ถูกต้อง';
+  if(k==='phone') return /^[0-9\-\s]{9,15}$/.test(v.trim()) ? '' : 'เบอร์โทร 9-10 หลัก เช่น 081-234-5678';
+  if(k==='addr')  return v.trim().length>=10 ? '' : 'กรอกที่อยู่ให้ครบถ้วนพอสำหรับจัดส่ง';
+  if(k==='pass')  return v.length>=6 ? '' : 'รหัสผ่านอย่างน้อย 6 ตัวอักษร';
+  return '';
+}
+function regInput(k, el){
+  REG[k] = el.value;
+  var msg = $('msg_'+k);
+  var bad = regCheck(k);
+  if(msg){
+    msg.textContent = el.value ? (bad || '✓ ใช้ได้') : '';
+    msg.className = 'fmsg' + (el.value ? (bad ? ' bad' : ' good') : '');
+  }
+  el.classList.toggle('inv', !!(el.value && bad));
+  if(k==='pass'){
+    var sc = pwScore(el.value);
+    var bar = $('pwbar'), lab = $('pwlab');
+    if(bar){ bar.style.width = (el.value ? (sc+1)*20 : 0) + '%';
+             bar.className = 'pwfill lv'+sc; }
+    if(lab) lab.textContent = el.value ? PW_LABEL[sc] : '';
+  }
+  var ok = ['name','email','phone','addr','pass'].every(function(x){ return !regCheck(x); }) && REG.accept;
+  var btn = $('regBtn'); if(btn) btn.disabled = !ok;
+}
+function regAccept(el){ REG.accept = el.checked; regInput('pass', $('rp')); }
+function togglePw(id, el){
+  var f = $(id);
+  f.type = f.type==='password' ? 'text' : 'password';
+  el.textContent = f.type==='password' ? 'แสดง' : 'ซ่อน';
+}
+
+function authSide(mode){
+  var items = mode==='reg'
+    ? [['วงเงินเครดิต 2,000 บาท','ซื้อก่อนจ่ายทีหลังภายใน 30 วัน ทันทีที่สมัครเสร็จ'],
+       ['ร่วมประมูลไม้หายาก','เสนอราคาต้นสะสมในห้องประมูลได้เฉพาะสมาชิก'],
+       ['เก็บรายการโปรด','บันทึกต้นที่ถูกใจไว้ ใช้ข้ามเครื่องได้'],
+       ['ติดตามพัสดุง่ายขึ้น','ดูสถานะได้เลยโดยไม่ต้องกรอกเลขที่คำสั่งซื้อ'],
+       ['เขียนรีวิวได้','แบ่งปันประสบการณ์การเลี้ยงให้คนอื่น']]
+    : [['กลับมาช้อปต่อ','ตะกร้าและรายการโปรดของคุณรออยู่'],
+       ['ดูสถานะคำสั่งซื้อ','ติดตามได้ทุกขั้นตอนจนถึงหน้าบ้าน'],
+       ['วงเงินเครดิตของคุณ','ตรวจยอดคงเหลือและประวัติการใช้']];
+  return '<div class="authside">'+
+    '<div style="width:96px;margin:0 auto 6px">'+art('monstera')+'</div>'+
+    '<div class="eyebrow" style="color:#8FBF9F;text-align:center">GreenPlant Member</div>'+
+    '<h3>'+(mode==='reg'?'สมัครฟรี ไม่มีค่าใช้จ่าย':'ยินดีต้อนรับกลับมา')+'</h3>'+
+    '<ul>'+items.map(function(x){
+      return '<li><b>'+esc(x[0])+'</b><span>'+esc(x[1])+'</span></li>'; }).join('')+'</ul>'+
+    '</div>';
+}
+
 function openAuth(mode, forAdmin){
   if(S.user && !forAdmin){ go(isAdmin()?'admin':'orders'); return; }
   mode = mode||'login';
+  REG = {name:'', email:'', phone:'', addr:'', pass:'', accept:false};
+
   var adminNote = forAdmin
     ? '<div class="note warn" style="margin-bottom:14px">หน้าหลังร้านเปิดให้เฉพาะบัญชีที่ได้รับสิทธิ์ผู้ดูแล กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแลร้าน</div>' : '';
-  var login=adminNote+
-    '<div class="field"><label class="f" for="le">อีเมล</label><input id="le" type="email" placeholder="you@mail.com" autocomplete="email"></div>'+
-    '<div class="field"><label class="f" for="lp">รหัสผ่าน</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()"></div>'+
+
+  var login = adminNote+
+    '<div class="field"><label class="f" for="le">อีเมล</label>'+
+    '<input id="le" type="email" placeholder="you@mail.com" autocomplete="email"></div>'+
+    '<div class="field"><label class="f" for="lp">รหัสผ่าน</label>'+
+    '<div class="pwwrap"><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()">'+
+    '<button type="button" class="pwtog" onclick="togglePw(\'lp\', this)">แสดง</button></div></div>'+
     '<button class="btn" style="width:100%" onclick="doLogin()">เข้าสู่ระบบ</button>'+
     '<div style="display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:13.5px;flex-wrap:wrap">'+
     '<a href="#" onclick="forgotPassword();return false" style="color:var(--ink-2)">ลืมรหัสผ่าน?</a>'+
     '<span>ยังไม่มีบัญชี? <a href="#" onclick="openAuth(\'reg\');return false" style="color:var(--leaf);font-weight:600">สมัครสมาชิก</a></span></div>';
-  var reg='<div class="field"><label class="f" for="rn">ชื่อ-นามสกุล</label><input id="rn" type="text" placeholder="ชื่อจริงของคุณ"></div>'+
-    '<div class="row2"><div class="field"><label class="f" for="re">อีเมล</label><input id="re" type="email" placeholder="you@mail.com"></div>'+
-    '<div class="field"><label class="f" for="rt">เบอร์โทร</label><input id="rt" type="tel" placeholder="08x-xxx-xxxx"></div></div>'+
-    '<div class="field"><label class="f" for="ra">ที่อยู่จัดส่ง</label><textarea id="ra" rows="2" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด"></textarea></div>'+
-    '<div class="field"><label class="f" for="rp">รหัสผ่าน</label><input id="rp" type="password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>'+
-    '<button class="btn" style="width:100%" onclick="doRegister()">สมัครสมาชิก</button>'+
-    '<p style="text-align:center;font-size:13.5px;margin:12px 0 0">มีบัญชีแล้ว? <a href="#" onclick="openAuth(\'login\');return false" style="color:var(--leaf);font-weight:600">เข้าสู่ระบบ</a></p>';
-  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow">'+
+
+  var reg =
+    '<div class="field"><label class="f" for="rn">ชื่อ-นามสกุล</label>'+
+    '<input id="rn" type="text" placeholder="เช่น ภควัต ซามงค์" oninput="regInput(\'name\', this)">'+
+    '<div id="msg_name" class="fmsg"></div></div>'+
+    '<div class="field"><label class="f" for="re">อีเมล <span style="font-weight:400;color:var(--ink-2)">(ใช้เข้าสู่ระบบ)</span></label>'+
+    '<input id="re" type="email" placeholder="you@mail.com" oninput="regInput(\'email\', this)">'+
+    '<div id="msg_email" class="fmsg"></div></div>'+
+    '<div class="field"><label class="f" for="rt">เบอร์โทรศัพท์</label>'+
+    '<input id="rt" type="tel" placeholder="081-234-5678" oninput="regInput(\'phone\', this)">'+
+    '<div id="msg_phone" class="fmsg">ใช้ยืนยันตัวตนตอนติดตามพัสดุ</div></div>'+
+    '<div class="field"><label class="f" for="ra">ที่อยู่จัดส่ง</label>'+
+    '<textarea id="ra" rows="2" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" oninput="regInput(\'addr\', this)"></textarea>'+
+    '<div id="msg_addr" class="fmsg"></div></div>'+
+    '<div class="field"><label class="f" for="rp">รหัสผ่าน</label>'+
+    '<div class="pwwrap"><input id="rp" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" oninput="regInput(\'pass\', this)">'+
+    '<button type="button" class="pwtog" onclick="togglePw(\'rp\', this)">แสดง</button></div>'+
+    '<div class="pwbar"><i id="pwbar" class="pwfill"></i></div>'+
+    '<div style="display:flex;justify-content:space-between;gap:8px">'+
+    '<div id="msg_pass" class="fmsg"></div><div id="pwlab" class="fmsg"></div></div></div>'+
+    '<label class="payopt" style="align-items:flex-start;margin-bottom:14px">'+
+    '<input type="checkbox" onchange="regAccept(this)">'+
+    '<span><b style="font-size:14px">ยอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว</b>'+
+    '<small>ยินยอมให้ร้านเก็บและใช้ข้อมูลเพื่อจัดส่งสินค้าและติดต่อกลับ ตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 '+
+    '<a href="#" onclick="event.preventDefault();closeModal();goLegal(\'terms\')" style="color:var(--leaf);font-weight:600">อ่านเงื่อนไข</a> · '+
+    '<a href="#" onclick="event.preventDefault();closeModal();goLegal(\'privacy\')" style="color:var(--leaf);font-weight:600">อ่านนโยบาย</a></small></span></label>'+
+    '<button id="regBtn" class="btn" style="width:100%" onclick="doRegister()" disabled>สมัครสมาชิก</button>'+
+    '<p style="text-align:center;font-size:13.5px;margin:12px 0 0">มีบัญชีแล้ว? '+
+    '<a href="#" onclick="openAuth(\'login\');return false" style="color:var(--leaf);font-weight:600">เข้าสู่ระบบ</a></p>';
+
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
+    '<div class="modal authmodal'+(mode==='reg'?'':' small')+'">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
-    '<div class="eyebrow">'+(forAdmin?'Merchant Back Office':'GreenPlant Member')+'</div>'+
-    '<h2 style="font-family:var(--display);font-size:25px;margin:6px 0 16px;font-weight:600;line-height:1.45">'+
-      (mode==='login'?(forAdmin?'เข้าสู่ระบบหลังร้าน':'เข้าสู่ระบบสมาชิก'):'สมัครสมาชิกใหม่')+'</h2>'+
-    (mode==='login'?login:reg)+'</div></div>';
+    '<div class="authwrap">'+ authSide(mode) +
+    '<div class="authform">'+
+      '<div class="eyebrow">'+(forAdmin?'Merchant Back Office':(mode==='reg'?'Create Account':'Sign In'))+'</div>'+
+      '<h2 style="font-family:var(--display);font-size:25px;margin:6px 0 16px;font-weight:600;line-height:1.45">'+
+        (mode==='login'?(forAdmin?'เข้าสู่ระบบหลังร้าน':'เข้าสู่ระบบสมาชิก'):'สมัครสมาชิกใหม่')+'</h2>'+
+      (mode==='login'?login:reg)+
+    '</div></div></div></div>';
   setTimeout(function(){ var f=$(mode==='login'?'le':'rn'); if(f) f.focus(); }, 60);
 }
 
