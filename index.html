@@ -477,7 +477,8 @@ var SHOP = {
   bank:'ธนาคารกสิกรไทย',
   acc:'xxx-x-x2450-x',
   accName:'นาย ภควัต ซามงค์',
-  qr:'promptpay-qr.png'          // วางไฟล์รูป QR ไว้โฟลเดอร์เดียวกับ index.html
+  // วางไฟล์ QR ไว้โฟลเดอร์เดียวกับ index.html ระบบจะไล่หาตามลำดับนี้จนกว่าจะเจอ
+  qr:['promptpay-qr.png','promptpay-qr.jpg','promptpay-qr.jpeg','promptpay-qr.png.jpg','promptpay-qr.webp']
 };
 
 /* ---------- 3) ข้อมูลที่โหลดมาเก็บไว้ในเครื่อง ---------- */
@@ -1791,8 +1792,8 @@ function viewCheckout(){
       }).join('')+'</div>'+
       (c.pay.indexOf('โอน')>-1 ?
         '<div class="qrbox">'+
-          '<div class="qrimg"><img src="'+SHOP.qr+'" alt="QR พร้อมเพย์สำหรับโอนเงินให้ร้าน GreenPlant" '+
-          'onerror="this.parentNode.innerHTML=\'<div class=&quot;qrmiss&quot;>ยังไม่ได้วางไฟล์ '+SHOP.qr+'<br>ไว้โฟลเดอร์เดียวกับหน้าเว็บ</div>\'"></div>'+
+          '<div class="qrimg"><img id="qrImg" src="'+SHOP.qr[0]+'" data-i="0" '+
+          'alt="QR พร้อมเพย์สำหรับโอนเงินให้ร้าน GreenPlant" onerror="qrNext(this)"></div>'+
           '<div class="qrinfo">'+
             '<div class="eyebrow">Thai QR Payment</div>'+
             '<h4>สแกนเพื่อโอนเงินให้ร้าน</h4>'+
@@ -2257,6 +2258,19 @@ function initialView(){
   if(raw.indexOf('=') > -1) return 'home';        // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
   var v = raw.replace(/^#\/?/, '');
   return VIEWS.indexOf(v) > -1 ? v : 'home';
+}
+
+
+/* ---------- ไล่หาไฟล์ QR ทีละนามสกุลจนกว่าจะเจอ ---------- */
+function qrNext(img){
+  var i = Number(img.getAttribute('data-i')) + 1;
+  if(i < SHOP.qr.length){
+    img.setAttribute('data-i', i);
+    img.src = SHOP.qr[i];
+    return;
+  }
+  img.parentNode.innerHTML = '<div class="qrmiss">ไม่พบไฟล์ QR<br>'+
+    'วางไฟล์ชื่อ <b>promptpay-qr.png</b> หรือ <b>promptpay-qr.jpg</b><br>ไว้โฟลเดอร์เดียวกับ index.html</div>';
 }
 /* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
