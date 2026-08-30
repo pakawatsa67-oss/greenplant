@@ -205,6 +205,14 @@ tr:last-child td{border-bottom:0}
 .payopt.on{border-color:var(--leaf);background:#F3F9F4;box-shadow:inset 0 0 0 1px var(--leaf)}
 .payopt input{margin-top:4px;accent-color:var(--leaf)}
 .payopt small{color:var(--ink-2);display:block;font-size:12.5px}
+.qrbox{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;margin-top:16px;
+  border:1px solid var(--line);border-radius:14px;padding:16px;background:#F7FAF6}
+.qrimg{width:190px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;place-items:center}
+.qrimg img{width:100%;display:block;border-radius:6px}
+.qrmiss{font-size:12.5px;color:var(--danger);text-align:center;padding:34px 8px;line-height:1.6}
+.qrinfo h4{font-family:var(--display);font-size:19px;margin:4px 0 10px;font-weight:600;line-height:1.4}
+.qrinfo .sum{padding:5px 0;font-size:14px}
+@media (max-width:620px){ .qrbox{grid-template-columns:1fr} .qrimg{width:100%;max-width:230px;margin:0 auto} }
 
 /* ---------- Tracking timeline ---------- */
 .timeline{list-style:none;margin:0;padding:0 0 0 24px;border-left:2px dashed var(--line)}
@@ -462,11 +470,15 @@ var STATUS = {
   reject:{t:'ไม่อนุมัติ/ยกเลิก', c:'s-reject'}
 };
 var PAYMENTS = [
-  {v:'โอนผ่านธนาคาร / PromptPay', d:'สแกน QR หรือโอนเข้าบัญชี แล้วแนบสลิปให้ร้านตรวจสอบ', slip:true},
-  {v:'บัตรเครดิต / เดบิต', d:'ตัดบัตรผ่านระบบชำระเงินที่เข้ารหัส SSL'},
-  {v:'เก็บเงินปลายทาง (COD)', d:'ชำระกับพนักงานส่งของ มีค่าบริการเพิ่ม 20 บาท'},
+  {v:'โอนผ่านธนาคาร / พร้อมเพย์', d:'สแกน QR พร้อมเพย์ของร้าน แล้วแนบสลิปเพื่อให้ร้านตรวจสอบ', slip:true},
   {v:'เครดิตสมาชิก (วางบิล 30 วัน)', d:'เฉพาะสมาชิกที่ได้รับวงเงิน ร้านจะตรวจสอบเครดิตก่อนอนุมัติ', member:true}
 ];
+var SHOP = {
+  bank:'ธนาคารกสิกรไทย',
+  acc:'xxx-x-x2450-x',
+  accName:'นาย ภควัต ซามงค์',
+  qr:'promptpay-qr.png'          // วางไฟล์รูป QR ไว้โฟลเดอร์เดียวกับ index.html
+};
 
 /* ---------- 3) ข้อมูลที่โหลดมาเก็บไว้ในเครื่อง ---------- */
 var DB = { products:[], ratings:{}, reviews:{}, myOrders:[], adminOrders:[], members:[], messages:[],
@@ -1478,7 +1490,7 @@ function viewHome(){
       '<div><b>'+DB.products.length+' รายการ</b>ในแคตตาล็อก</div>'+
       '<div><b>ส่งฟรี</b>เมื่อซื้อครบ 1,000 บาท</div>'+
       '<div><b>7 วัน</b>รับประกันต้นไม้เสียหาย</div>'+
-      '<div><b>4 ช่องทาง</b>การชำระเงิน</div>'+
+      '<div><b>พร้อมเพย์</b>โอนแล้วแนบสลิป</div>'+
     '</div></div>'+
 
     '<section style="padding-bottom:0">'+ promoBanner() +'</section>'+
@@ -1509,7 +1521,7 @@ function viewHome(){
       '<div class="feat" style="grid-template-columns:1fr 1fr">'+
         '<div><b>ตะกร้าและสั่งซื้อ</b><p>เพิ่ม ลด ลบสินค้าได้อิสระ พร้อมสรุปยอดและค่าจัดส่งอัตโนมัติ</p></div>'+
         '<div><b>เปรียบเทียบสินค้า</b><p>วางสินค้าได้ 3 รายการ ดูราคา ขนาด แสง และการดูแลเทียบกัน</p></div>'+
-        '<div><b>ชำระได้ 4 ช่องทาง</b><p>โอน/พร้อมเพย์ บัตรเครดิต เก็บเงินปลายทาง และเครดิตสมาชิก</p></div>'+
+        '<div><b>ชำระด้วยพร้อมเพย์</b><p>สแกน QR โอนแล้วแนบสลิป ร้านตรวจสอบและอนุมัติให้ภายใน 1 ชั่วโมง</p></div>'+
         '<div><b>ตอบรับคำสั่งซื้อ</b><p>ออกเลขที่คำสั่งซื้อและใบตอบรับทันทีเมื่อยืนยันการสั่งซื้อ</p></div>'+
       '</div></div></section>'+
     '<section style="padding-top:0">'+ newsletterBox() +'</section>'+
@@ -1743,6 +1755,10 @@ function pickSlip(input){
 }
 function toStep3(){
   var c=S.checkout;
+  if(c.pay.indexOf('โอน')>-1 && !c.slip){
+    toast('กรุณาแนบสลิปการโอนก่อน เพื่อให้ร้านตรวจสอบและอนุมัติคำสั่งซื้อได้');
+    return;
+  }
   if(c.pay.indexOf('เครดิตสมาชิก')>-1){
     if(!S.user){ toast('ช่องทางเครดิตสมาชิกใช้ได้เฉพาะสมาชิกที่เข้าสู่ระบบแล้ว'); return; }
     var left=S.user.credit-S.user.used;
@@ -1774,14 +1790,22 @@ function viewCheckout(){
         '<span><b>'+p.v+'</b><small>'+p.d+(dis?' — ต้องเข้าสู่ระบบสมาชิกก่อน':'')+'</small></span></label>';
       }).join('')+'</div>'+
       (c.pay.indexOf('โอน')>-1 ?
-        '<div class="note" style="margin-top:14px">ธนาคารกสิกรไทย เลขที่บัญชี 123-4-56789-0 ชื่อบัญชี ร้าน GreenPlant</div>'+
-        '<div class="field" style="margin-top:12px"><label class="f" for="slipIn">แนบสลิปการโอน (ไม่บังคับ · ไม่เกิน 5 MB)</label>'+
+        '<div class="qrbox">'+
+          '<div class="qrimg"><img src="'+SHOP.qr+'" alt="QR พร้อมเพย์สำหรับโอนเงินให้ร้าน GreenPlant" '+
+          'onerror="this.parentNode.innerHTML=\'<div class=&quot;qrmiss&quot;>ยังไม่ได้วางไฟล์ '+SHOP.qr+'<br>ไว้โฟลเดอร์เดียวกับหน้าเว็บ</div>\'"></div>'+
+          '<div class="qrinfo">'+
+            '<div class="eyebrow">Thai QR Payment</div>'+
+            '<h4>สแกนเพื่อโอนเงินให้ร้าน</h4>'+
+            '<div class="sum"><span>ธนาคาร</span><b>'+esc(SHOP.bank)+'</b></div>'+
+            '<div class="sum"><span>ชื่อบัญชี</span><b>'+esc(SHOP.accName)+'</b></div>'+
+            '<div class="sum"><span>เลขที่บัญชี</span><b class="mono">'+esc(SHOP.acc)+'</b></div>'+
+            '<div class="sum total"><span>ยอดที่ต้องโอน</span><span>฿'+baht(grandTotal())+'</span></div>'+
+            '<p class="sku" style="margin-top:8px">โอนยอดให้ตรงตามนี้เพื่อให้ร้านตรวจสอบได้เร็วขึ้น</p>'+
+          '</div></div>'+
+        '<div class="field" style="margin-top:14px"><label class="f" for="slipIn">แนบสลิปการโอน <span style="color:var(--danger)">*</span> <span style="font-weight:400;color:var(--ink-2)">(ไม่เกิน 5 MB)</span></label>'+
         '<input id="slipIn" type="file" accept="image/*" onchange="pickSlip(this)">'+
-        '<div id="slipName" class="sku" style="margin-top:6px">'+(c.slipName?'แนบแล้ว: '+esc(c.slipName):'ยังไม่ได้แนบไฟล์')+'</div></div>':'')+
-      (c.pay.indexOf('บัตร')>-1 ?
-        '<div class="row2" style="margin-top:14px"><div class="field"><label class="f">หมายเลขบัตร</label><input type="text" placeholder="4xxx xxxx xxxx xxxx"></div>'+
-        '<div class="field"><label class="f">วันหมดอายุ / CVV</label><input type="text" placeholder="MM/YY · 123"></div></div>'+
-        '<div class="note">ข้อมูลบัตรถูกเข้ารหัสด้วย SSL และไม่ถูกจัดเก็บไว้ในระบบร้านค้า</div>':'')+
+        '<div id="slipName" class="fmsg'+(c.slipName?' good':'')+'" style="margin-top:6px">'+
+        (c.slipName?'✓ แนบแล้ว: '+esc(c.slipName):'ต้องแนบสลิปก่อนจึงจะไปขั้นถัดไปได้')+'</div></div>':'')+
       (c.pay.indexOf('เครดิตสมาชิก')>-1 && S.user ?
         '<div class="note warn" style="margin-top:14px">วงเงินของคุณ ฿'+baht(S.user.credit)+' · ใช้ไปแล้ว ฿'+baht(S.user.used)+' · คงเหลือ <b>฿'+baht(S.user.credit-S.user.used)+'</b><br>คำสั่งซื้อจะถูกส่งให้ร้านตรวจสอบเครดิตก่อนอนุมัติ</div>':'')+
       '<div style="display:flex;gap:10px;margin-top:16px"><button class="btn ghost" onclick="S.step=1;render()">ย้อนกลับ</button>'+
@@ -2695,8 +2719,8 @@ var FAQ = [
    'แนะนำลิ้นมังกรหรือพลูด่างครับ ทั้งสองชนิดทนต่อการลืมรดน้ำ ปลูกในที่แสงน้อยได้ และแทบไม่มีโรคแมลง เมื่อเริ่มจับทางได้แล้วค่อยขยับไปมอนสเตอร่าหรือไทรใบสัก'],
   ['ต้นไม้มาพร้อมกระถางเลยไหม',
    'มาพร้อมกระถางปลูกที่ระบุไว้ในหน้าสินค้า พร้อมดินที่ผสมมาให้เหมาะกับชนิดนั้นแล้ว หากต้องการเปลี่ยนเป็นกระถางตกแต่ง สามารถสั่งเพิ่มจากหมวดกระถางได้ในคำสั่งซื้อเดียวกัน'],
-  ['ชำระเงินได้กี่ช่องทาง',
-   'มี 4 ช่องทาง คือ โอนผ่านธนาคารหรือพร้อมเพย์ บัตรเครดิตและเดบิต เก็บเงินปลายทาง (มีค่าบริการ 20 บาท) และเครดิตสมาชิกแบบวางบิล 30 วันสำหรับสมาชิกที่ได้รับวงเงิน'],
+  ['ชำระเงินอย่างไร',
+   'ร้านรับชำระด้วยการโอนผ่านพร้อมเพย์เท่านั้น เมื่อเลือกสินค้าเสร็จ ระบบจะแสดง QR พร้อมเพย์และยอดที่ต้องโอน สแกนโอนแล้วแนบสลิปในหน้าเดียวกัน ร้านจะตรวจสอบและอนุมัติภายใน 1 ชั่วโมงทำการ ส่วนสมาชิกที่ได้รับวงเงินเครดิตสามารถเลือกวางบิล 30 วันได้'],
   ['วงเงินเครดิตสมาชิกคืออะไร',
    'เป็นวงเงินที่ร้านให้สมาชิกซื้อก่อนจ่ายทีหลังภายใน 30 วัน สมาชิกใหม่ได้เริ่มต้น 2,000 บาท ร้านจะตรวจสอบวงเงินคงเหลือก่อนอนุมัติทุกคำสั่งซื้อ และปรับวงเงินขึ้นได้ตามประวัติการชำระ'],
   ['การประมูลต้นไม้หายากทำงานอย่างไร',
