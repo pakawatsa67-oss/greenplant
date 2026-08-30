@@ -1,0 +1,31 @@
+name: Keep Supabase Awake
+
+# Supabase แผนฟรีจะพักโปรเจกต์ถ้าไม่มีการเรียกใช้ฐานข้อมูลติดต่อกัน 7 วัน
+# งานนี้จะยิงคำขออ่านข้อมูลเบา ๆ ทุก 3 วัน เพื่อให้โปรเจกต์ตื่นอยู่เสมอ
+# จนกว่าอาจารย์จะตรวจงานเสร็จ
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'      # ทุก 3 วัน เวลา 10:00 น. ตามเวลาไทย
+  workflow_dispatch:            # กดรันเองได้จากแท็บ Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: เรียกอ่านข้อมูลสินค้า 1 รายการ
+        run: |
+          URL="https://znksmxrjtwssfznrovjo.supabase.co/rest/v1/products?select=id&limit=1"
+          KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+
+          CODE=$(curl -s -o /tmp/out.json -w "%{http_code}" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" "$URL")
+
+          echo "HTTP $CODE"
+          cat /tmp/out.json
+
+          if [ "$CODE" != "200" ]; then
+            echo "::error::เรียกฐานข้อมูลไม่สำเร็จ (HTTP $CODE) โปรเจกต์อาจถูกพักไปแล้ว ให้เข้าไปกดปลุกที่หน้า Supabase"
+            exit 1
+          fi
+          echo "ฐานข้อมูลยังทำงานปกติ"

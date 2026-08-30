@@ -266,6 +266,8 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .spec dd{margin:0;font-weight:500}
 .review{border-top:1px solid var(--line);padding:11px 0}
 .review b{font-size:14px}
+.verified{display:inline-block;background:var(--leaf-soft);color:#2C6142;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:5px;vertical-align:middle}
 
 /* ---------- Compare ---------- */
 .cmptable td,.cmptable th{border-bottom:1px solid var(--line);padding:12px 10px}
@@ -773,7 +775,19 @@ async function loadMyOrders(){
   DB.myOrders = r.data;
 }
 
-/* ---------- 12) รีวิวสินค้า ---------- */
+/* ---------- 12) รีวิวสินค้า (เฉพาะผู้ที่ซื้อและได้รับของแล้ว) ---------- */
+/* ตรวจจากประวัติคำสั่งซื้อที่โหลดไว้ เพื่อไม่ต้องยิงถามเซิร์ฟเวอร์ทุกครั้ง
+   ตัวจริงบังคับที่ฐานข้อมูลด้วย RLS อยู่แล้ว */
+function hasPurchased(pid){
+  return DB.myOrders.some(function(o){
+    return ['shipped','done'].indexOf(o.status) > -1 &&
+           (o.order_items||[]).some(function(i){ return i.product_id === pid; });
+  });
+}
+function hasReviewed(pid){
+  return (DB.myReviews||[]).some(function(r){ return r.product_id === pid; });
+}
+
 async function addReview(pid){
   if(!S.user){ toast('เข้าสู่ระบบก่อนจึงจะเขียนรีวิวได้'); return; }
   var body=$('rvText').value.trim();
@@ -1125,7 +1139,9 @@ async function closeAuction(aid){
     var r = await sb.rpc('close_auction', {p_auction:aid});
     if(r.error) throw r.error;
     await loadAuctions();
-    toast('ปิดประมูลแล้ว ผู้ชนะคือ '+r.data.winner);
+    if(isAdmin()) await loadAdmin();
+    toast('ปิดประมูลแล้ว ผู้ชนะคือ '+r.data.winner +
+          (r.data.order_code ? ' · ออกคำสั่งซื้อเลขที่ '+r.data.order_code+' ให้แล้ว' : ''));
     render();
   }catch(e){ toast(errMsg(e)); }
   finally{ setBusy(false); }
@@ -1704,13 +1720,7 @@ function drawProduct(p, rv){
             '<div style="font-size:14px;color:var(--ink-2)">'+esc(x.body)+'</div>'+
             '<small class="mono" style="color:#9AAAA0">'+esc(thaiDate(x.created_at))+'</small></div>';}).join('')
           : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีรีวิวสำหรับสินค้านี้ เป็นคนแรกที่แบ่งปันประสบการณ์ได้เลย</p>'))+
-      (S.user? '<div class="panel" style="margin-top:14px;padding:16px">'+
-          '<label class="f">ให้คะแนน</label>'+
-          '<select id="rvStar" style="width:auto;margin-bottom:10px"><option value="5">★★★★★ ดีมาก</option><option value="4">★★★★ ดี</option><option value="3">★★★ พอใช้</option><option value="2">★★ ควรปรับปรุง</option><option value="1">★ ไม่พอใจ</option></select>'+
-          '<textarea id="rvText" rows="2" placeholder="เล่าประสบการณ์การใช้งานสินค้าชิ้นนี้"></textarea>'+
-          '<button class="btn sm" style="margin-top:10px" onclick="addReview('+p.id+')">ส่งรีวิว</button></div>'
-        : '<div class="note warn" style="margin-top:12px">เข้าสู่ระบบสมาชิกก่อนจึงจะเขียนรีวิวได้ '+
-          '<button class="btn sm ghost" style="margin-left:6px" onclick="closeModal();openAuth()">เข้าสู่ระบบ</button></div>')+
+      reviewBox(p)+
     '</div></div></div>';
 }
 function mq(d, max){
@@ -2380,6 +2390,31 @@ function qrFallback(holder){
   holder.innerHTML = '<img id="qrImg" src="'+SHOP.qr[0]+'" data-i="0" '+
     'alt="QR พร้อมเพย์สำหรับโอนเงินให้ร้าน GreenPlant" onerror="qrNext(this)">';
 }
+
+
+/* ---------- กล่องเขียนรีวิว แสดงตามสิทธิ์ของผู้ใช้ ---------- */
+function reviewBox(p){
+  if(!S.user){
+    return '<div class="note warn" style="margin-top:12px">เข้าสู่ระบบสมาชิกก่อนจึงจะเขียนรีวิวได้ '+
+      '<button class="btn sm ghost" style="margin-left:6px" onclick="closeModal();openAuth()">เข้าสู่ระบบ</button></div>';
+  }
+  if(hasReviewed(p.id)){
+    return '<div class="note" style="margin-top:12px">คุณรีวิวสินค้าชิ้นนี้ไปแล้ว แก้ไขหรือลบได้ที่เมนูบัญชีของฉัน '+
+      '<button class="btn sm ghost" style="margin-left:6px" onclick="closeModal();S.acctTab=\'reviews\';go(\'orders\')">ไปที่รีวิวของฉัน</button></div>';
+  }
+  if(!hasPurchased(p.id)){
+    return '<div class="note warn" style="margin-top:12px">'+
+      '<b>รีวิวได้เฉพาะผู้ที่ซื้อสินค้าชิ้นนี้และได้รับของแล้ว</b><br>'+
+      'ร้านกำหนดเงื่อนไขนี้เพื่อให้ทุกรีวิวมาจากประสบการณ์จริง ไม่ใช่รีวิวปลอม</div>';
+  }
+  return '<div class="panel" style="margin-top:14px;padding:16px">'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+    '<b style="font-size:15px">เขียนรีวิวสินค้าชิ้นนี้</b><span class="verified">ผู้ซื้อจริง</span></div>'+
+    '<label class="f">ให้คะแนน</label>'+
+    '<select id="rvStar" style="width:auto;margin-bottom:10px"><option value="5">★★★★★ ดีมาก</option><option value="4">★★★★ ดี</option><option value="3">★★★ พอใช้</option><option value="2">★★ ควรปรับปรุง</option><option value="1">★ ไม่พอใจ</option></select>'+
+    '<textarea id="rvText" rows="2" placeholder="เล่าประสบการณ์การใช้งานสินค้าชิ้นนี้"></textarea>'+
+    '<button class="btn sm" style="margin-top:10px" onclick="addReview('+p.id+')">ส่งรีวิว</button></div>';
+}
 /* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
    ========================================================= */
@@ -2464,7 +2499,8 @@ function drawAuction(a, bids){
         '<div class="sci" style="font-size:15px">'+esc(a.sci_name)+'</div>'+
         '<p style="color:var(--ink-2);margin:10px 0">'+esc(a.description)+'</p>'+
         '<div class="'+(ended?'note':'note warn')+'" style="margin-bottom:12px">'+
-          (ended? '<b>ปิดประมูลแล้ว</b>'+(a.winner_name?' · ผู้ชนะ: '+esc(a.winner_name)+' ที่ราคา ฿'+baht(a.current_price):'')
+          (ended? '<b>ปิดประมูลแล้ว</b>'+(a.winner_name?' · ผู้ชนะ: '+esc(a.winner_name)+' ที่ราคา ฿'+baht(a.current_price):'')+
+                  (a.order_code? '<br>ระบบออกคำสั่งซื้อเลขที่ <span class="mono">'+esc(a.order_code)+'</span> ให้ผู้ชนะแล้ว รอชำระเงิน':'')
                 : '<b>เหลือเวลา '+cd.text+'</b> · ปิดประมูล '+esc(thaiDate(a.ends_at)))+'</div>'+
         '<dl class="spec">'+
           '<dt>ราคาเริ่มต้น</dt><dd>฿'+baht(a.start_price)+'</dd>'+
@@ -2819,7 +2855,8 @@ function adminAuction(){
         (a.top_bidder?'<div class="sku">'+esc(a.top_bidder)+'</div>':'')+'</td>'+
       '<td>'+a.bid_count+' ครั้ง</td>'+
       '<td style="font-size:13px">'+esc(thaiDate(a.ends_at))+'<div class="sku">'+countdown(a.ends_at).text+'</div></td>'+
-      '<td>'+(a.status==='closed'? '<span class="status s-done">ปิดแล้ว</span>'+(a.winner_name?'<div class="sku">'+esc(a.winner_name)+'</div>':'')
+      '<td>'+(a.status==='closed'? '<span class="status s-done">ปิดแล้ว</span>'+(a.winner_name?'<div class="sku">'+esc(a.winner_name)+'</div>':'')+
+             (a.order_code?'<div class="sku mono">'+esc(a.order_code)+'</div>':'')
              : (ended? '<span class="status s-await">หมดเวลา รอปิด</span>' : '<span class="status s-shipped">เปิดอยู่</span>'))+'</td>'+
       '<td style="white-space:nowrap">'+
         (a.status!=='closed'? '<button class="btn sm leaf" onclick="closeAuction('+a.id+')">ปิดประมูล</button> ':'')+
