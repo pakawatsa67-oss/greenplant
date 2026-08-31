@@ -266,6 +266,12 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .spec dd{margin:0;font-weight:500}
 .review{border-top:1px solid var(--line);padding:11px 0}
 .review b{font-size:14px}
+.relgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.relitem{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:11px;
+  padding:8px;cursor:pointer;transition:.15s;background:var(--card)}
+.relitem:hover{border-color:var(--leaf);transform:translateY(-2px)}
+.relimg{width:54px;height:54px;background:#EDF3EC;border-radius:8px;flex-shrink:0;overflow:hidden;display:grid;place-items:center}
+.relimg svg{width:88%;height:88%}
 .verified{display:inline-block;background:var(--leaf-soft);color:#2C6142;font-size:11px;font-weight:600;
   padding:2px 8px;border-radius:5px;vertical-align:middle}
 
@@ -553,7 +559,7 @@ var S = {
   step:1, checkout:{name:'',phone:'',addr:'',note:'',pay:PAYMENTS[0].v,slip:null,slipName:''},
   lastOrder:null, track:null, trackCode:'', tab:'dash', editing:null,
   coupon:null, accept:false, cookieDone:false, legalTab:'privacy', aboutTab:'about', acctTab:'dash', wish:[],
-  editCoupon:null, editAuction:null, tick:null
+  editCoupon:null, editAuction:null, tick:null, ordQ:'', ordStatus:'all'
 };
 
 /* ---------- 5) ฟังก์ชันช่วยเหลือ ---------- */
@@ -1197,6 +1203,35 @@ async function delAuction(id){
    ระบบสมาชิก (ฉบับสมบูรณ์)
    ========================================================= */
 
+/* ---------- 24ข) ลูกค้ายกเลิกคำสั่งซื้อเอง ---------- */
+function askCancelOrder(code){
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow">'+
+    '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
+    '<div class="eyebrow">Cancel Order</div>'+
+    '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 8px;font-weight:600;line-height:1.45">ยกเลิกคำสั่งซื้อ '+esc(code)+'</h2>'+
+    '<div class="note">ยกเลิกได้เพราะร้านยังไม่เริ่มดำเนินการ ระบบจะคืนสินค้าเข้าคลัง คืนวงเงินเครดิต และคืนสิทธิ์การใช้คูปองให้อัตโนมัติ</div>'+
+    '<div class="field" style="margin-top:14px"><label class="f" for="cancelWhy">เหตุผล (ไม่บังคับ)</label>'+
+    '<select id="cancelWhy"><option>เปลี่ยนใจ</option><option>สั่งผิดรายการ</option><option>สั่งผิดจำนวน</option>'+
+    '<option>ต้องการแก้ที่อยู่จัดส่ง</option><option>อื่น ๆ</option></select></div>'+
+    '<div style="display:flex;gap:10px"><button class="btn ghost" onclick="closeModal()">ไม่ยกเลิกแล้ว</button>'+
+    '<button class="btn danger" onclick="doCancelOrder(\''+esc(code)+'\')">ยืนยันยกเลิก</button></div></div></div>';
+}
+async function doCancelOrder(code){
+  setBusy(true);
+  try{
+    var why = $('cancelWhy') ? $('cancelWhy').value : null;
+    var r = await sb.rpc('cancel_my_order', {p_code:code, p_reason:why});
+    if(r.error) throw r.error;
+    closeModal();
+    await loadAccount();
+    await loadCatalog();
+    if(S.user) await loadProfile();
+    toast(r.data.message);
+    render();
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); }
+}
+
 /* ---------- 25) รายการโปรดที่บันทึกถาวร ---------- */
 async function loadWish(){
   if(!S.user){ S.wish=[]; return; }
@@ -1721,7 +1756,7 @@ function drawProduct(p, rv){
             '<small class="mono" style="color:#9AAAA0">'+esc(thaiDate(x.created_at))+'</small></div>';}).join('')
           : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีรีวิวสำหรับสินค้านี้ เป็นคนแรกที่แบ่งปันประสบการณ์ได้เลย</p>'))+
       reviewBox(p)+
-    '</div></div></div>';
+    '</div>'+ relatedBox(p) +'</div></div>';
 }
 function mq(d, max){
   var e=$('mqty');
@@ -2082,7 +2117,8 @@ function acctDash(){
     (DB.myOrders.length? '<div class="tblwrap"><table><tr><th>เลขที่</th><th>วันที่</th><th>ยอด</th><th>สถานะ</th></tr>'+
       DB.myOrders.slice(0,5).map(function(o){
         return '<tr><td class="mono">'+esc(o.code)+'</td><td style="white-space:nowrap;font-size:13px">'+esc(thaiDate(o.created_at))+'</td>'+
-        '<td>฿'+baht(o.total)+'</td><td><span class="status '+STATUS[o.status].c+'">'+STATUS[o.status].t+'</span></td></tr>';
+        '<td>฿'+baht(o.total)+'</td><td><span class="status '+STATUS[o.status].c+'">'+STATUS[o.status].t+'</span>'+
+        (o.status==='await'?'<div class="sku">ยกเลิกได้จนกว่าร้านจะอนุมัติ</div>':'')+'</td></tr>';
       }).join('')+'</table></div>'
       : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีประวัติการสั่งซื้อ</p>')+
     '<button class="btn sm ghost" style="margin-top:12px" onclick="S.acctTab=\'orders\';render()">ดูทั้งหมด</button></div>'+
@@ -2105,7 +2141,9 @@ function acctOrders(){
         (Number(o.discount)?'<div class="sku" style="color:var(--leaf)">ลด ฿'+baht(o.discount)+'</div>':'')+'</td>'+
         '<td style="font-size:13px">'+esc(o.payment_method)+'</td>'+
         '<td><span class="status '+STATUS[o.status].c+'">'+STATUS[o.status].t+'</span></td>'+
-        '<td><button class="btn sm ghost" onclick="trackByCode(\''+esc(o.code)+'\')">ติดตาม</button></td></tr>';
+        '<td style="white-space:nowrap"><button class="btn sm ghost" onclick="trackByCode(\''+esc(o.code)+'\')">ติดตาม</button>'+
+        (o.status==='await' ? ' <button class="btn sm danger" onclick="askCancelOrder(\''+esc(o.code)+'\')">ยกเลิก</button>' : '')+
+        '</td></tr>';
       }).join('')+'</table>'
       : '<div class="empty"><p>ยังไม่มีประวัติการสั่งซื้อ</p><button class="btn" onclick="go(\'shop\')">เริ่มเลือกซื้อ</button></div>')+
     '</div>';
@@ -2414,6 +2452,23 @@ function reviewBox(p){
     '<select id="rvStar" style="width:auto;margin-bottom:10px"><option value="5">★★★★★ ดีมาก</option><option value="4">★★★★ ดี</option><option value="3">★★★ พอใช้</option><option value="2">★★ ควรปรับปรุง</option><option value="1">★ ไม่พอใจ</option></select>'+
     '<textarea id="rvText" rows="2" placeholder="เล่าประสบการณ์การใช้งานสินค้าชิ้นนี้"></textarea>'+
     '<button class="btn sm" style="margin-top:10px" onclick="addReview('+p.id+')">ส่งรีวิว</button></div>';
+}
+
+
+/* ---------- สินค้าที่เกี่ยวข้อง (แนะนำจากหมวดหมู่เดียวกัน) ---------- */
+function relatedBox(p){
+  var rel = DB.products.filter(function(x){
+    return x.is_active && x.id !== p.id && x.category === p.category && x.stock > 0;
+  }).slice(0, 4);
+  if(!rel.length) return '';
+  return '<div style="margin-top:22px;border-top:1px solid var(--line);padding-top:16px">'+
+    '<h3 style="font-family:var(--display);font-size:19px;margin:0 0 10px;font-weight:600">สินค้าอื่นในหมวด '+esc(p.category)+'</h3>'+
+    '<div class="relgrid">'+ rel.map(function(x){
+      return '<div class="relitem" onclick="openProduct('+x.id+')">'+
+        '<div class="relimg">'+pic(x)+'</div>'+
+        '<div><div style="font-weight:600;font-size:14px;line-height:1.4">'+esc(x.name)+'</div>'+
+        '<div class="price" style="font-size:16px;padding-top:2px">฿'+baht(x.price)+'</div></div></div>';
+    }).join('') +'</div></div>';
 }
 /* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
@@ -2996,6 +3051,7 @@ function adminDash(){
     '<div class="kpi"><small>ยอดเครดิตค้างชำระ</small><b>฿'+baht(debt)+'</b><small>จากสมาชิก '+DB.members.length+' ราย</small></div>'+
     '<div class="kpi"><small>สินค้าในแคตตาล็อก</small><b>'+DB.products.length+'</b><small>รายการ</small></div>'+
     '</div>'+
+    salesReport()+
     '<div class="layout2"><div class="panel"><h3>คำสั่งซื้อล่าสุด</h3><div class="tblwrap"><table>'+
       '<tr><th>เลขที่</th><th>ลูกค้า</th><th>ยอด</th><th>ชำระโดย</th><th>สถานะ</th></tr>'+
       (DB.adminOrders.length? DB.adminOrders.slice(0,6).map(function(o){
@@ -3008,6 +3064,60 @@ function adminDash(){
         return '<div class="sum"><span>'+esc(p.name)+'</span><b style="color:'+(p.stock===0?'var(--danger)':'var(--warn)')+'">'+p.stock+' ชิ้น</b></div>';
       }).join('') : '<p style="color:var(--ink-2);font-size:14px">สต็อกทุกรายการอยู่ในระดับปลอดภัย</p>')+
       '<button class="btn sm ghost" style="margin-top:12px" onclick="tab(\'cat\')">ไปที่การจัดการสต็อก</button></div></div>';
+}
+
+/* ---------- 35ข) รายงานยอดขาย 7 วันล่าสุด ---------- */
+function salesReport(){
+  var days=[], today=new Date();
+  for(var i=6;i>=0;i--){
+    var d=new Date(today.getFullYear(), today.getMonth(), today.getDate()-i);
+    days.push({key:d.toISOString().slice(0,10), label:(d.getDate()+'/'+(d.getMonth()+1)), sum:0, n:0});
+  }
+  DB.adminOrders.forEach(function(o){
+    if(o.status==='reject') return;
+    var k=(o.created_at||'').slice(0,10);
+    for(var i=0;i<days.length;i++) if(days[i].key===k){ days[i].sum+=Number(o.total); days[i].n++; }
+  });
+  var max=1; days.forEach(function(d){ if(d.sum>max) max=d.sum; });
+  var week=0; days.forEach(function(d){ week+=d.sum; });
+
+  // นับสินค้าขายดีจากรายการในคำสั่งซื้อ
+  var tally={};
+  DB.adminOrders.forEach(function(o){
+    if(o.status==='reject') return;
+    (o.order_items||[]).forEach(function(i){
+      var k=i.product_name;
+      if(!tally[k]) tally[k]={qty:0, sum:0};
+      tally[k].qty += i.qty;
+      tally[k].sum += Number(i.unit_price)*i.qty;
+    });
+  });
+  var top=Object.keys(tally).map(function(k){ return {name:k, qty:tally[k].qty, sum:tally[k].sum}; })
+            .sort(function(a,b){ return b.qty-a.qty; }).slice(0,5);
+
+  var W=560, H=170, pad=26, bw=Math.floor((W-pad*2)/days.length)-14;
+  var bars = days.map(function(d,i){
+    var h = Math.round((d.sum/max)*(H-58));
+    var x = pad + i*Math.floor((W-pad*2)/days.length);
+    var y = H-30-h;
+    return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+Math.max(h,2)+'" rx="4" fill="'+(d.sum>0?'#3C8C5B':'#DBE3D9')+'"></rect>'+
+      (d.sum>0? '<text x="'+(x+bw/2)+'" y="'+(y-6)+'" text-anchor="middle" font-size="10" fill="#4A5C53">'+baht(d.sum)+'</text>':'')+
+      '<text x="'+(x+bw/2)+'" y="'+(H-12)+'" text-anchor="middle" font-size="10.5" fill="#8A9A90">'+d.label+'</text>';
+  }).join('');
+
+  return '<div class="layout2" style="margin-bottom:18px"><div class="panel">'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">'+
+    '<h3 style="margin:0">ยอดขาย 7 วันล่าสุด</h3>'+
+    '<b style="font-family:var(--display);font-size:22px;letter-spacing:.6px">฿'+baht(week)+'</b></div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;margin-top:10px" role="img" '+
+    'aria-label="กราฟแท่งแสดงยอดขายรายวันย้อนหลัง 7 วัน">'+bars+'</svg>'+
+    (week===0? '<p style="color:var(--ink-2);font-size:13.5px;margin:0">ยังไม่มียอดขายในช่วง 7 วันที่ผ่านมา</p>':'')+
+    '</div>'+
+    '<div class="panel"><h3>สินค้าขายดี</h3>'+
+    (top.length? top.map(function(t,i){
+      return '<div class="sum"><span>'+(i+1)+'. '+esc(t.name)+'</span><b>'+t.qty+' ชิ้น · ฿'+baht(t.sum)+'</b></div>';
+    }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีข้อมูลการขาย</p>')+
+    '</div></div>';
 }
 
 /* ---------- 36) จัดการแคตตาล็อก ---------- */
@@ -3062,9 +3172,29 @@ function adminOrders(){
   if(!DB.adminOrders.length){
     return '<div class="panel"><h3>คำสั่งซื้อทั้งหมด</h3><p style="color:var(--ink-2);font-size:14px">ยังไม่มีคำสั่งซื้อเข้ามาในระบบ</p></div>';
   }
+  var q=(S.ordQ||'').trim().toLowerCase();
+  var list = DB.adminOrders.filter(function(o){
+    var okStatus = !S.ordStatus || S.ordStatus==='all' || o.status===S.ordStatus;
+    var okQ = !q || (o.code+' '+o.receiver_name+' '+o.phone+' '+(o.tracking_no||'')).toLowerCase().indexOf(q)>-1;
+    return okStatus && okQ;
+  });
+  var counts={all:DB.adminOrders.length};
+  ['await','approved','packing','shipped','done','reject'].forEach(function(k){
+    counts[k]=DB.adminOrders.filter(function(o){return o.status===k;}).length;
+  });
   return '<div class="panel"><h3>คำสั่งซื้อทั้งหมด และการตรวจสอบเครดิต</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 14px">ตรวจสอบการชำระเงินหรือวงเงินเครดิตของลูกค้า ก่อนกดอนุมัติเพื่อส่งงานต่อไปยังฝ่ายจัดส่ง</p>'+
-    DB.adminOrders.map(function(o){
+    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 12px">ตรวจสอบการชำระเงินหรือวงเงินเครดิตของลูกค้า ก่อนกดอนุมัติเพื่อส่งงานต่อไปยังฝ่ายจัดส่ง</p>'+
+    '<div class="toolbar" style="margin-bottom:14px">'+
+      '<button class="pill'+((!S.ordStatus||S.ordStatus==='all')?' on':'')+'" onclick="S.ordStatus=\'all\';render()">ทั้งหมด ('+counts.all+')</button>'+
+      ['await','approved','packing','shipped','done','reject'].map(function(k){
+        return '<button class="pill'+(S.ordStatus===k?' on':'')+'" onclick="S.ordStatus=\''+k+'\';render()">'+
+               STATUS[k].t+' ('+counts[k]+')</button>';
+      }).join('')+
+      '<input type="text" placeholder="ค้นหาเลขที่ ชื่อ เบอร์โทร หรือเลขพัสดุ" value="'+esc(S.ordQ||'')+'" '+
+      'style="margin-left:auto;flex:1;min-width:220px" oninput="S.ordQ=this.value;clearTimeout(window._oq);window._oq=setTimeout(render,250)">'+
+    '</div>'+
+    (list.length? '' : '<p style="color:var(--ink-2);font-size:14px">ไม่พบคำสั่งซื้อที่ตรงกับเงื่อนไข</p>')+
+    list.map(function(o){
       var u=o.profiles;
       var useCredit=o.payment_method.indexOf('เครดิตสมาชิก')>-1;
       var left = u ? Number(u.credit_limit)-Number(u.credit_used) : 0;
