@@ -53,6 +53,9 @@ button{cursor:pointer}
 a{color:inherit}
 :focus-visible{outline:2.5px solid var(--leaf); outline-offset:2px; border-radius:4px}
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.skiplink{position:absolute;left:-9999px;top:0;z-index:400;background:var(--forest);color:#fff;
+  padding:12px 20px;border-radius:0 0 12px 0;font-weight:600;text-decoration:none}
+.skiplink:focus{left:0}
 .mono{font-family:var(--mono);font-size:.82em;letter-spacing:.02em}
 .hidden{display:none !important}
 
@@ -394,17 +397,18 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
 </head>
 <body>
 
+<a class="skiplink" href="#app">ข้ามไปยังเนื้อหาหลัก</a>
 <header class="top">
   <div class="topbar"><div class="wrap">
     <span>ส่งฟรีเมื่อสั่งครบ 1,000 บาท · จัดส่งพร้อมกล่องกันกระแทก</span>
-    <span id="whoami">ยังไม่ได้เข้าสู่ระบบ</span>
+    <span id="whoami" role="status" aria-live="polite">ยังไม่ได้เข้าสู่ระบบ</span>
   </div></div>
   <div class="wrap nav">
     <a class="brand" href="#" onclick="go('home');return false">
       <span class="mark"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#9AD3AC" stroke-width="1.7" stroke-linecap="round"><path d="M12 21V9"/><path d="M12 12C12 8 9 5 5 5c0 4 3 7 7 7z" fill="#3C8C5B" stroke="none"/><path d="M12 15c0-3.5 2.6-6 6-6 0 3.5-2.6 6-6 6z" fill="#9AD3AC" stroke="none"/></svg></span>
       <span><b>GreenPlant</b><small>Plant &amp; Garden</small></span>
     </a>
-    <nav class="navlinks" id="navlinks">
+    <nav class="navlinks" id="navlinks" aria-label="เมนูหลัก">
       <button data-nav="home" onclick="go('home')">หน้าแรก</button>
       <button data-nav="shop" onclick="go('shop')">สินค้าทั้งหมด</button>
       <button data-nav="compare" onclick="go('compare')">เปรียบเทียบ <span id="cmpN" class="mono"></span></button>
@@ -416,7 +420,7 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
     </nav>
     <div class="searchbox">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7C8E84" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="q" type="text" placeholder="ค้นหาต้นไม้ กระถาง ดินปลูก…" oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter')go('shop')">
+      <input id="q" type="search" aria-label="ค้นหาสินค้า" placeholder="ค้นหาต้นไม้ กระถาง ดินปลูก…" oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter')go('shop')">
     </div>
     <button class="iconbtn" onclick="go('wish')" title="รายการโปรด" aria-label="รายการโปรด">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12241D" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0112 8.6 4 4 0 0119 10.8C19 15.6 12 20 12 20z"/></svg>
@@ -435,8 +439,8 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
   </div>
 </header>
 
-<div id="busy"></div>
-<main id="app"></main>
+<div id="busy" role="progressbar" aria-label="กำลังทำงาน"></div>
+<main id="app" tabindex="-1"></main>
 
 <footer>
   <div class="wrap">
@@ -477,8 +481,8 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
   </div>
 </footer>
 
-<div id="modalRoot"></div>
-<div class="toast" id="toast"></div>
+<div id="modalRoot" role="region" aria-label="หน้าต่างซ้อน"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <!-- ไลบรารีสร้าง QR (qrcode 1.5.3, สัญญาอนุญาต MIT) ฝังไว้ในไฟล์เพื่อไม่ต้องพึ่ง CDN -->
 <script>
@@ -585,7 +589,7 @@ var S = {
   step:1, checkout:{name:'',phone:'',addr:'',note:'',pay:PAYMENTS[0].v,slip:null,slipName:''},
   lastOrder:null, track:null, trackCode:'', tab:'dash', editing:null,
   coupon:null, accept:false, cookieDone:false, legalTab:'privacy', aboutTab:'about', acctTab:'dash', wish:[],
-  editCoupon:null, editAuction:null, tick:null, ordQ:'', ordStatus:'all', openPid:null
+  editCoupon:null, editAuction:null, tick:null, ordQ:'', ordStatus:'all', openPid:null, lastFocus:null
 };
 
 /* ---------- 5) ฟังก์ชันช่วยเหลือ ---------- */
@@ -1231,7 +1235,7 @@ async function delAuction(id){
 
 /* ---------- 24ข) ลูกค้ายกเลิกคำสั่งซื้อเอง ---------- */
 function askCancelOrder(code){
-  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow">'+
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Cancel Order</div>'+
     '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 8px;font-weight:600;line-height:1.45">ยกเลิกคำสั่งซื้อ '+esc(code)+'</h2>'+
@@ -1412,7 +1416,7 @@ async function forgotPassword(){
 
 /* ---------- 29ข) ตั้งรหัสผ่านใหม่หลังกดลิงก์ในอีเมล ---------- */
 function openResetPassword(){
-  $('modalRoot').innerHTML='<div class="overlay"><div class="modal narrow">'+
+  $('modalRoot').innerHTML='<div class="overlay"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<div class="eyebrow">Reset Password</div>'+
     '<h2 style="font-family:var(--display);font-size:25px;margin:6px 0 6px;font-weight:600;line-height:1.45">ตั้งรหัสผ่านใหม่</h2>'+
     '<p style="color:var(--ink-2);font-size:14px;margin:0 0 16px">กรอกรหัสผ่านใหม่ที่ต้องการใช้ จากนั้นระบบจะพาเข้าสู่ระบบให้อัตโนมัติ</p>'+
@@ -1479,7 +1483,7 @@ async function exportMyData(){
 
 /* ---------- 31) สิทธิตาม PDPA: ขอลบบัญชี ---------- */
 function askDeleteAccount(){
-  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow">'+
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">PDPA · สิทธิขอให้ลบข้อมูล</div>'+
     '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 10px;font-weight:600;line-height:1.45">ยืนยันการลบบัญชี</h2>'+
@@ -1803,7 +1807,7 @@ async function openProduct(id){
 }
 function drawProduct(p, rv){
   var r=ratingOf(p.id);
-  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">'+
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="pdetail">'+
       '<div><div class="big">'+pic(p)+'</div>'+
@@ -1855,6 +1859,8 @@ function mq(d, max){
 function closeModal(){
   $('modalRoot').innerHTML='';
   document.body.classList.remove('print-modal');
+  if(S.lastFocus && S.lastFocus.focus){ try{ S.lastFocus.focus(); }catch(e){} }
+  S.lastFocus = null;
   if(S.openPid){                       // ปิดหน้าสินค้าแล้วคืน URL กลับเป็นหน้าเดิม
     S.openPid = null;
     _navLock = true;
@@ -2453,7 +2459,7 @@ function openAuth(mode, forAdmin){
     '<a href="#" onclick="openAuth(\'login\');return false" style="color:var(--leaf);font-weight:600">เข้าสู่ระบบ</a></p>';
 
   $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
-    '<div class="modal authmodal'+(mode==='reg'?'':' small')+'">'+
+    '<div class="modal authmodal'+(mode==='reg'?'':' small')+'" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="authwrap">'+ authSide(mode) +
     '<div class="authform">'+
@@ -2467,7 +2473,7 @@ function openAuth(mode, forAdmin){
 
 /* ---------- 34) ติดต่อร้าน ---------- */
 function openContact(){
-  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow">'+
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Customer Service</div>'+
     '<h2 style="font-family:var(--display);font-size:25px;margin:6px 0 4px;font-weight:600;line-height:1.45">ติดต่อร้าน</h2>'+
@@ -2630,6 +2636,26 @@ function relatedBox(p){
         '<div class="price" style="font-size:16px;padding-top:2px">฿'+baht(x.price)+'</div></div></div>';
     }).join('') +'</div></div>';
 }
+
+
+/* ---------- การเข้าถึง: กักโฟกัสไว้ในหน้าต่างซ้อน ---------- */
+/* ผู้ใช้ที่กด Tab ไปเรื่อย ๆ ต้องไม่หลุดไปโดนปุ่มด้านหลังที่มองไม่เห็น */
+function trapFocus(e){
+  var ov = document.querySelector('#modalRoot .overlay');
+  if(!ov || e.key !== 'Tab') return;
+  var f = ov.querySelectorAll('button, [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])');
+  if(!f.length) return;
+  var first = f[0], last = f[f.length-1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+}
+document.addEventListener('keydown', trapFocus);
+
+/* จำตำแหน่งโฟกัสเดิมไว้ก่อนเปิดหน้าต่างซ้อน แล้วคืนกลับเมื่อปิด */
+document.addEventListener('mousedown', function(e){
+  var t = e.target.closest && e.target.closest('button, a');
+  if(t && !t.closest('#modalRoot')) S.lastFocus = t;
+}, true);
 /* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
    ========================================================= */
@@ -2704,7 +2730,7 @@ function drawAuction(a, bids){
   var cd = countdown(a.ends_at), ended = auctionEnded(a);
   var minNext = nextMinBid(a);
   var isTop = S.user && a.top_bidder_id === S.user.id;
-  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">'+
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="pdetail">'+
       '<div><div class="big">'+(a.image_url? '<img src="'+esc(a.image_url)+'" alt="'+esc(a.title)+'" class="pimg">' : art(a.art_key))+'</div></div>'+
@@ -3515,7 +3541,7 @@ function adminMsg(){
 function render(){
   if(!S.ready){
     $('app').innerHTML='<div class="wrap"><div class="loadbox">'+
-      '<div class="spin"></div><p>กำลังเชื่อมต่อฐานข้อมูลและโหลดแคตตาล็อกสินค้า…</p></div></div>';
+      '<div class="spin"></div><p id="bootMsg">กำลังเชื่อมต่อฐานข้อมูลและโหลดแคตตาล็อกสินค้า…</p></div></div>';
     return;
   }
   var v=S.view, html='';
@@ -3559,6 +3585,26 @@ setInterval(function(){
 }, 1000);
 
 /* ---------- 41) เริ่มต้นระบบ ---------- */
+
+/* บริการฐานข้อมูลแผนฟรีจะหลับเมื่อไม่มีคนใช้ การเรียกครั้งแรกจึงอาจล้มเหลว
+   ระบบจะลองใหม่ให้เองพร้อมแจ้งสถานะ แทนที่จะขึ้นหน้าผิดพลาดทันที */
+async function withRetry(fn, tries){
+  tries = tries || 3;
+  var lastErr;
+  for(var i=0;i<tries;i++){
+    try{ return await fn(); }
+    catch(e){
+      lastErr = e;
+      if(i < tries-1){
+        var el = $('bootMsg');
+        if(el) el.textContent = 'ฐานข้อมูลกำลังตื่นจากโหมดพักการทำงาน กำลังลองใหม่ครั้งที่ '+(i+2)+'…';
+        await new Promise(function(r){ setTimeout(r, 2500); });
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function boot(){
   render();
   var fromEmail = handleAuthHash();
@@ -3571,7 +3617,7 @@ async function boot(){
     await loadProfile();
   }catch(e){ /* ยังไม่ได้เข้าสู่ระบบ ถือว่าเป็นผู้เยี่ยมชมทั่วไป */ }
   try{
-    await loadCatalog();
+    await withRetry(loadCatalog);
     try{ await loadAuctions(); }catch(e0){ console.warn('โหลดรายการประมูลไม่สำเร็จ', e0); }
     try{ await loadPublicCoupons(); }catch(e1){ console.warn('โหลดคูปองไม่สำเร็จ', e1); }
     S.ready = true;
@@ -3589,14 +3635,15 @@ async function boot(){
     $('app').innerHTML='<div class="wrap"><div class="loadbox">'+
       '<div style="width:90px">'+art('fern')+'</div>'+
       '<h2 style="font-family:var(--display);font-weight:600;margin:8px 0 4px">เชื่อมต่อฐานข้อมูลไม่สำเร็จ</h2>'+
-      '<p style="color:var(--ink-2)">'+esc(errMsg(e))+'</p>'+
+      '<p style="color:var(--ink-2);max-width:44ch">'+esc(errMsg(e))+'</p>'+
+      '<p style="color:var(--ink-2);font-size:13.5px;max-width:44ch">ลองใหม่แล้ว 3 ครั้งแต่ยังไม่สำเร็จ '+
+      'หากเพิ่งเปิดเว็บครั้งแรกในรอบหลายวัน ฐานข้อมูลอาจกำลังตื่นจากโหมดพัก รอสักครู่แล้วกดลองใหม่</p>'+
       '<button class="btn" onclick="location.reload()">ลองใหม่อีกครั้ง</button></div></div>';
   }
 }
 boot();
 
-
-/* ---------- ใบส่งของสำหรับแนบไปกับพัสดุ ---------- */
+/* ---------- 42) ใบส่งของสำหรับแนบไปกับพัสดุ ---------- */
 function printSlip(code){
   document.body.classList.add('print-modal');   // เวลาพิมพ์ให้เหลือเฉพาะเอกสารนี้
   var o=null;
@@ -3604,7 +3651,7 @@ function printSlip(code){
   if(!o){ toast('ไม่พบคำสั่งซื้อนี้'); return; }
   var items=(o.order_items||[]);
   $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
-    '<div class="modal" style="max-width:700px">'+
+    '<div class="modal" role="dialog" aria-modal="true" style="max-width:700px">'+
     '<button class="closex noprint" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div id="slipDoc" class="slipdoc">'+
       '<div class="sliphead">'+
