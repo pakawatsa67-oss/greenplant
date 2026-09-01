@@ -288,6 +288,10 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0}
 .tabs button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:14px;font-weight:500}
 .tabs button.on{background:var(--forest);color:#fff;border-color:var(--forest)}
+.tabbadge{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-left:7px;
+  background:var(--clay);color:#fff;border-radius:999px;font-size:11px;font-family:var(--mono);vertical-align:middle}
+.cphint{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  background:#F3F9F4;border:1px dashed var(--leaf);border-radius:11px;padding:10px 12px;margin:10px 0;font-size:13.5px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
 .kpi small{color:var(--ink-2);font-size:12.5px;display:block}
@@ -1254,6 +1258,63 @@ async function doCancelOrder(code){
   finally{ setBusy(false); }
 }
 
+/* ---------- 24ค) สั่งซื้อซ้ำจากประวัติ ---------- */
+function reorder(code){
+  var o=null; DB.myOrders.forEach(function(x){ if(x.code===code) o=x; });
+  if(!o){ toast('ไม่พบคำสั่งซื้อนี้'); return; }
+  var added=0, skipped=[], partial=[];
+  (o.order_items||[]).forEach(function(i){
+    var p = i.product_id ? P(i.product_id) : null;
+    if(!p || !p.is_active){ skipped.push(i.product_name); return; }
+    var can = avail(p);
+    if(can <= 0){ skipped.push(p.name); return; }
+    var qty = Math.min(i.qty, can);
+    if(qty < i.qty) partial.push(p.name+' (ได้ '+qty+' จาก '+i.qty+')');
+    var f=null; S.cart.forEach(function(c){ if(c.id===p.id) f=c; });
+    if(f) f.qty += qty; else S.cart.push({id:p.id, qty:qty});
+    added++;
+  });
+  if(!added){
+    toast('สินค้าในคำสั่งซื้อนี้หมดหรือถูกนำออกจากร้านแล้ว');
+    return;
+  }
+  var msg = 'เพิ่มสินค้าจากคำสั่งซื้อ '+code+' ลงตะกร้าแล้ว';
+  if(partial.length) msg += ' · ปรับจำนวนตามของที่มี: '+partial.join(', ');
+  if(skipped.length) msg += ' · ไม่ได้เพิ่ม: '+skipped.join(', ');
+  toast(msg);
+  go('cart');
+}
+
+/* ---------- 24ง) ส่งออกรายงานคำสั่งซื้อเป็นไฟล์ CSV ---------- */
+function exportOrdersCSV(){
+  if(!isAdmin()) return;
+  var rows = [['เลขที่คำสั่งซื้อ','วันที่','ผู้รับ','เบอร์โทร','ที่อยู่','ช่องทางชำระ',
+               'ยอดสินค้า','ส่วนลด','คูปอง','ค่าจัดส่ง','รวมทั้งสิ้น','สถานะ','ขนส่ง','เลขพัสดุ','รายการสินค้า']];
+  DB.adminOrders.forEach(function(o){
+    rows.push([
+      o.code, thaiDate(o.created_at), o.receiver_name, o.phone, o.address, o.payment_method,
+      Number(o.subtotal), Number(o.discount||0), o.coupon_code||'', Number(o.shipping_fee),
+      Number(o.total), STATUS[o.status].t, o.carrier||'', o.tracking_no||'',
+      (o.order_items||[]).map(function(i){ return i.product_name+' x'+i.qty; }).join(' | ')
+    ]);
+  });
+  var csv = rows.map(function(r){
+    return r.map(function(c){
+      var v = String(c==null?'':c);
+      return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+    }).join(',');
+  }).join('\r\n');
+  // ใส่ BOM เพื่อให้ Excel อ่านภาษาไทยได้ถูกต้อง
+  var blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'greenplant-orders-' + (new Date()).toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  toast('ส่งออกรายงาน '+DB.adminOrders.length+' คำสั่งซื้อเรียบร้อย เปิดด้วย Excel ได้เลย');
+}
+
 /* ---------- 25) รายการโปรดที่บันทึกถาวร ---------- */
 async function loadWish(){
   if(!S.user){ S.wish=[]; return; }
@@ -2193,6 +2254,7 @@ function acctOrders(){
         '<td><span class="status '+STATUS[o.status].c+'">'+STATUS[o.status].t+'</span></td>'+
         '<td style="white-space:nowrap"><button class="btn sm ghost" onclick="trackByCode(\''+esc(o.code)+'\')">ติดตาม</button>'+
         (o.status==='await' ? ' <button class="btn sm danger" onclick="askCancelOrder(\''+esc(o.code)+'\')">ยกเลิก</button>' : '')+
+        (['done','shipped','reject'].indexOf(o.status)>-1 ? ' <button class="btn sm ghost" onclick="reorder(\''+esc(o.code)+'\')">สั่งซ้ำ</button>' : '')+
         '</td></tr>';
       }).join('')+'</table>'
       : '<div class="empty"><p>ยังไม่มีประวัติการสั่งซื้อ</p><button class="btn" onclick="go(\'shop\')">เริ่มเลือกซื้อ</button></div>')+
@@ -2419,13 +2481,53 @@ function openContact(){
 
 
 /* ---------- บทที่ 5: กล่องกรอกรหัสส่วนลด ---------- */
+/* คำนวณส่วนลดของคูปองใบหนึ่งไว้จัดอันดับก่อนแนะนำ (ตัวจริงคำนวณซ้ำที่เซิร์ฟเวอร์) */
+function couponValue(c, sub, ship){
+  if(!c.is_active) return -1;
+  if(c.ends_at && new Date(c.ends_at) < new Date()) return -1;
+  if(Number(c.usage_limit) > 0 && Number(c.used_count) >= Number(c.usage_limit)) return -1;
+  if(sub < Number(c.min_subtotal)) return -1;
+  if(c.discount_type === 'percent'){
+    var d = Math.round(sub * Number(c.discount_value) / 100 * 100) / 100;
+    if(Number(c.max_discount) > 0 && d > Number(c.max_discount)) d = Number(c.max_discount);
+    return d;
+  }
+  if(c.discount_type === 'amount') return Math.min(Number(c.discount_value), sub);
+  if(c.discount_type === 'freeship') return ship;
+  return -1;
+}
+function bestCoupon(){
+  var sub = cartSub();
+  var ship = sub >= 1000 ? 0 : 60;
+  var best = null, bestVal = 0;
+  (DB.coupons||[]).forEach(function(c){
+    var v = couponValue(c, sub, ship);
+    if(v > bestVal){ bestVal = v; best = c; }
+  });
+  return best ? {c:best, value:bestVal} : null;
+}
+function couponHint(){
+  if(S.coupon) return '';
+  var b = bestCoupon();
+  if(!b) return '';
+  return '<div class="cphint">'+
+    '<span>ใช้รหัส <b class="mono">'+esc(b.c.code)+'</b> ประหยัดได้อีก <b>฿'+baht(b.value)+'</b></span>'+
+    '<button class="btn sm leaf" onclick="useCoupon(\''+esc(b.c.code)+'\')">ใช้เลย</button></div>';
+}
+function useCoupon(code){
+  var el = $('cpIn');
+  if(el) el.value = code;
+  applyCoupon();
+}
+
 function couponBox(){
   if(S.coupon){
     return '<div class="note" style="margin:10px 0;display:flex;justify-content:space-between;gap:10px;align-items:center">'+
       '<span><b>'+esc(S.coupon.code)+'</b><br><span style="font-size:12.5px">'+esc(S.coupon.desc||'')+'</span></span>'+
       '<button class="btn sm ghost" onclick="clearCoupon()">นำออก</button></div>';
   }
-  return '<div style="margin:10px 0"><label class="f" for="cpIn">มีรหัสส่วนลด?</label>'+
+  return couponHint()+
+    '<div style="margin:10px 0"><label class="f" for="cpIn">มีรหัสส่วนลด?</label>'+
     '<div style="display:flex;gap:8px">'+
     '<input id="cpIn" type="text" placeholder="เช่น GREEN10" style="flex:1;text-transform:uppercase" onkeydown="if(event.key===\'Enter\')applyCoupon()">'+
     '<button class="btn ghost" onclick="applyCoupon()">ใช้รหัส</button></div></div>';
@@ -3109,7 +3211,15 @@ function viewAdmin(){
     '<div class="tabs">'+
     [['dash','ภาพรวม'],['cat','จัดการสินค้า (E-Catalog)'],['ord','คำสั่งซื้อและการอนุมัติ'],['ship','การจัดส่งและติดตาม'],
      ['mem','สมาชิกและเครดิต'],['promo','โปรโมชันและคูปอง'],['auc','การประมูล'],['seo','ตรวจ SEO'],['msg','รีวิวและข้อความ']]
-      .map(function(t){ return '<button class="'+(S.tab===t[0]?'on':'')+'" onclick="tab(\''+t[0]+'\')">'+t[1]+'</button>'; }).join('')+
+      .map(function(t){
+        var n = 0;
+        if(t[0]==='ord')  n = DB.adminOrders.filter(function(o){return o.status==='await';}).length;
+        if(t[0]==='ship') n = DB.adminOrders.filter(function(o){return o.status==='approved'||o.status==='packing';}).length;
+        if(t[0]==='msg')  n = DB.messages.filter(function(m){return !m.is_read;}).length;
+        if(t[0]==='auc')  n = DB.auctions.filter(function(a){return a.status==='open' && auctionEnded(a);}).length;
+        return '<button class="'+(S.tab===t[0]?'on':'')+'" onclick="tab(\''+t[0]+'\')">'+t[1]+
+               (n? '<span class="tabbadge">'+n+'</span>':'')+'</button>';
+      }).join('')+
     '</div>';
   var body='';
   if(S.tab==='dash') body=adminDash();
@@ -3148,7 +3258,9 @@ function adminDash(){
         return '<tr><td class="mono">'+esc(o.code)+'</td><td>'+esc(o.receiver_name)+'</td><td>฿'+baht(o.total)+'</td>'+
         '<td style="font-size:13px">'+esc(o.payment_method)+'</td><td><span class="status '+STATUS[o.status].c+'">'+STATUS[o.status].t+'</span></td></tr>';
       }).join('') : '<tr><td colspan="5" style="color:var(--ink-2)">ยังไม่มีคำสั่งซื้อ</td></tr>')+'</table></div>'+
-      '<button class="btn sm ghost" style="margin-top:12px" onclick="tab(\'ord\')">จัดการคำสั่งซื้อทั้งหมด</button></div>'+
+      '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+
+    '<button class="btn sm ghost" onclick="tab(\'ord\')">จัดการคำสั่งซื้อทั้งหมด</button>'+
+    '<button class="btn sm ghost" onclick="exportOrdersCSV()">ส่งออกรายงาน CSV</button></div></div>'+
     '<div class="panel"><h3>สินค้าใกล้หมด</h3>'+
       (low.length? low.map(function(p){
         return '<div class="sum"><span>'+esc(p.name)+'</span><b style="color:'+(p.stock===0?'var(--danger)':'var(--warn)')+'">'+p.stock+' ชิ้น</b></div>';
