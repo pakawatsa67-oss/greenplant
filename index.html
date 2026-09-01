@@ -364,6 +364,28 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
   .row2{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+
+/* ---------- ใบส่งของ ---------- */
+.slipdoc{background:#fff;color:#12241D}
+.sliphead{display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid var(--forest);padding-bottom:12px;flex-wrap:wrap}
+.slipbrand{font-family:var(--display);font-size:26px;font-weight:700;color:var(--forest);line-height:1.3}
+.slipfoot{border-top:1px dashed var(--line);margin-top:18px;padding-top:10px;font-size:12.5px;color:var(--ink-2);text-align:center}
+
+/* ---------- การพิมพ์เอกสาร ---------- */
+@media print{
+  header.top, footer, .cookiebar, #busy, .toast, .noprint,
+  .closex, .pacts, .quickadd, .tabs, .toolbar{display:none !important}
+  body{background:#fff;font-size:12pt}
+  .overlay{position:static;background:none;backdrop-filter:none;padding:0;display:block}
+  .modal{max-width:100%;box-shadow:none;border-radius:0;padding:0;max-height:none;overflow:visible}
+  .panel{border:0;box-shadow:none;padding:0}
+  .wrap{max-width:100%;padding:0}
+  section{padding:0}
+  .btn{display:none !important}
+  body.print-modal #app{display:none !important}     /* พิมพ์เฉพาะเอกสารในหน้าต่างซ้อน */
+  a[href]:after{content:''}
+  @page{margin:1.4cm}
+}
 </style>
 </head>
 <body>
@@ -559,7 +581,7 @@ var S = {
   step:1, checkout:{name:'',phone:'',addr:'',note:'',pay:PAYMENTS[0].v,slip:null,slipName:''},
   lastOrder:null, track:null, trackCode:'', tab:'dash', editing:null,
   coupon:null, accept:false, cookieDone:false, legalTab:'privacy', aboutTab:'about', acctTab:'dash', wish:[],
-  editCoupon:null, editAuction:null, tick:null, ordQ:'', ordStatus:'all'
+  editCoupon:null, editAuction:null, tick:null, ordQ:'', ordStatus:'all', openPid:null
 };
 
 /* ---------- 5) ฟังก์ชันช่วยเหลือ ---------- */
@@ -1710,6 +1732,8 @@ function viewShop(){
 /* ---------- 26) รายละเอียดสินค้าและรีวิว ---------- */
 async function openProduct(id){
   var p=P(id); if(!p) return;
+  S.openPid = id;
+  setProductHash(id);
   drawProduct(p, DB.reviews[id] || null);
   try{
     var rv = await loadReviews(id);
@@ -1744,6 +1768,7 @@ function drawProduct(p, rv){
           '<button class="btn" onclick="addCart('+p.id+', +document.getElementById(\'mqty\').textContent);closeModal()" '+(avail(p)<=0?'disabled':'')+'>'+
           (p.stock<=0?'สินค้าหมด':(avail(p)<=0?'หยิบครบแล้ว':'ใส่ตะกร้า'))+'</button>'+
           '<button class="btn ghost" onclick="toggleCompare('+p.id+')">⇄ เปรียบเทียบ</button>'+
+          '<button class="btn ghost" onclick="shareProduct('+p.id+')" title="คัดลอกลิงก์สินค้า">คัดลอกลิงก์</button>'+
         '</div>'+
       '</div>'+
     '</div>'+
@@ -1766,7 +1791,32 @@ function mq(d, max){
   if(v > cap){ v = cap; toast(cap<20 ? 'คงเหลือในคลังเพียง '+cap+' ชิ้น' : 'สั่งได้สูงสุด 20 ชิ้นต่อครั้ง'); }
   e.textContent = v;
 }
-function closeModal(){ $('modalRoot').innerHTML=''; }
+function closeModal(){
+  $('modalRoot').innerHTML='';
+  document.body.classList.remove('print-modal');
+  if(S.openPid){                       // ปิดหน้าสินค้าแล้วคืน URL กลับเป็นหน้าเดิม
+    S.openPid = null;
+    _navLock = true;
+    location.hash = '#/' + S.view;
+    setTimeout(function(){ _navLock=false; setSEO(S.view); }, 0);
+  }
+}
+function setProductHash(id){
+  var h = '#/p/' + id;
+  if(location.hash !== h){
+    _navLock = true;
+    location.hash = h;
+    setTimeout(function(){ _navLock=false; }, 0);
+  }
+  setSEO('product');
+}
+function shareProduct(id){
+  var url = location.origin + location.pathname + '#/p/' + id;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(function(){ toast('คัดลอกลิงก์สินค้าแล้ว'); },
+                                           function(){ toast(url); });
+  } else toast(url);
+}
 
 /* ---------- 27) เปรียบเทียบสินค้า ---------- */
 function viewCompare(){
@@ -2387,6 +2437,9 @@ window.addEventListener('hashchange', function(){
   if(_navLock) return;
   var raw = location.hash || '';
   if(raw.indexOf('=') > -1) return;               // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
+  var pm = raw.match(/^#\/p\/(\d+)$/);            // ลิงก์ตรงไปยังสินค้าชิ้นหนึ่ง
+  if(pm){ openProduct(Number(pm[1])); return; }
+  if(S.openPid){ S.openPid=null; $('modalRoot').innerHTML=''; }
   var v = raw.replace(/^#\/?/, '') || 'home';
   if(VIEWS.indexOf(v) < 0) v = 'home';
   if(v !== S.view) go(v);
@@ -2394,8 +2447,13 @@ window.addEventListener('hashchange', function(){
 function initialView(){
   var raw = location.hash || '';
   if(raw.indexOf('=') > -1) return 'home';        // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
+  if(/^#\/p\/\d+$/.test(raw)) return 'shop';     // ลิงก์สินค้า ให้เปิดหน้าแคตตาล็อกไว้ด้านหลัง
   var v = raw.replace(/^#\/?/, '');
   return VIEWS.indexOf(v) > -1 ? v : 'home';
+}
+function pendingProduct(){
+  var m = (location.hash||'').match(/^#\/p\/(\d+)$/);
+  return m ? Number(m[1]) : 0;
 }
 
 
@@ -2714,6 +2772,23 @@ var SEO_MAP = {
   admin:   ['ระบบจัดการหลังร้าน | GreenPlant', 'สำหรับผู้ดูแลร้านเท่านั้น']
 };
 function setSEO(v){
+  // หน้าสินค้ารายชิ้นสร้าง title และคำอธิบายจากข้อมูลสินค้าโดยตรง
+  if(v === 'product' && S.openPid){
+    var pp = P(S.openPid);
+    if(pp){
+      document.title = pp.name + ' ' + pp.sci_name + ' | GreenPlant';
+      setMeta('name','description', pp.description.slice(0,150));
+      setMeta('property','og:title', pp.name + ' | GreenPlant');
+      setMeta('property','og:description', pp.description.slice(0,150));
+      setMeta('property','og:url', location.href);
+      if(pp.image_url) setMeta('property','og:image', pp.image_url);
+      setMeta('name','robots','index,follow');
+      var can0 = document.querySelector('link[rel="canonical"]');
+      if(can0) can0.setAttribute('href', location.href);
+      productLD(pp);
+      return;
+    }
+  }
   var m = SEO_MAP[v] || SEO_MAP.home;
   document.title = m[0];
   setMeta('name','description', m[1]);
@@ -2731,6 +2806,21 @@ function setMeta(attr, key, val){
   if(!el){ el=document.createElement('meta'); el.setAttribute(attr,key); document.head.appendChild(el); }
   el.setAttribute('content', val);
 }
+/* ข้อมูลโครงสร้างของสินค้าหนึ่งชิ้น ช่วยให้ Google แสดงราคาและคะแนนในผลค้นหา */
+function productLD(p){
+  var old0=$('ld'); if(old0) old0.remove();
+  var r=ratingOf(p.id);
+  var data={'@context':'https://schema.org','@type':'Product',
+    name:p.name, sku:p.sku, category:p.category, description:p.description,
+    offers:{'@type':'Offer', price:Number(p.price), priceCurrency:'THB', url:location.href,
+            availability: p.stock>0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'}};
+  if(p.image_url) data.image = p.image_url;
+  if(r.n>0) data.aggregateRating={'@type':'AggregateRating', ratingValue:r.avg, reviewCount:r.n};
+  var s0=document.createElement('script');
+  s0.type='application/ld+json'; s0.id='ld'; s0.textContent=JSON.stringify(data);
+  document.head.appendChild(s0);
+}
+
 /* ---------- 47) ข้อมูลโครงสร้าง Schema.org ---------- */
 function jsonLD(v){
   var old=$('ld'); if(old) old.remove();
@@ -3227,6 +3317,7 @@ function adminOrders(){
           '<button class="btn sm danger" onclick="rejectOrder(\''+esc(o.code)+'\')">ยกเลิก</button>':'')+
         (o.status==='packing'? '<button class="btn sm ghost" onclick="tab(\'ship\')">ไปที่หน้าบันทึกการจัดส่ง</button>':'')+
         '<button class="btn sm ghost" onclick="trackByCode(\''+esc(o.code)+'\')">ดูไทม์ไลน์</button>'+
+        '<button class="btn sm ghost" onclick="printSlip(\''+esc(o.code)+'\')">พิมพ์ใบส่งของ</button>'+
         '</div></div>';
     }).join('')+'</div>';
 }
@@ -3374,6 +3465,8 @@ async function boot(){
     S.ready = true;
     if(!fromEmail) S.view = initialView();   // เปิดหน้าตามลิงก์ที่ผู้ใช้กดเข้ามา
     render();
+    var pid = pendingProduct();
+    if(pid && !fromEmail) setTimeout(function(){ openProduct(pid); }, 120);
     if(S.user){
       try{ await loadAccount(); }catch(e2){}
       if(isAdmin()){ try{ await loadAdmin(); }catch(e3){} }
@@ -3389,6 +3482,53 @@ async function boot(){
   }
 }
 boot();
+
+
+/* ---------- ใบส่งของสำหรับแนบไปกับพัสดุ ---------- */
+function printSlip(code){
+  document.body.classList.add('print-modal');   // เวลาพิมพ์ให้เหลือเฉพาะเอกสารนี้
+  var o=null;
+  DB.adminOrders.forEach(function(x){ if(x.code===code) o=x; });
+  if(!o){ toast('ไม่พบคำสั่งซื้อนี้'); return; }
+  var items=(o.order_items||[]);
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
+    '<div class="modal" style="max-width:700px">'+
+    '<button class="closex noprint" onclick="closeModal()" aria-label="ปิด">✕</button>'+
+    '<div id="slipDoc" class="slipdoc">'+
+      '<div class="sliphead">'+
+        '<div><div class="slipbrand">GreenPlant</div>'+
+        '<div class="sku">ร้านต้นไม้และของแต่งสวนออนไลน์<br>โทร 02-123-4567 · hello@greenplant.co.th</div></div>'+
+        '<div style="text-align:right"><div class="eyebrow">ใบส่งของ / Delivery Note</div>'+
+        '<div class="mono" style="font-size:19px">'+esc(o.code)+'</div>'+
+        '<div class="sku">วันที่ '+esc(thaiDate(o.created_at))+'</div></div>'+
+      '</div>'+
+      '<div class="row2" style="margin:16px 0">'+
+        '<div><b>ผู้รับสินค้า</b><div style="font-size:14px">'+esc(o.receiver_name)+'<br>'+
+        esc(o.phone)+'<br>'+esc(o.address)+'</div></div>'+
+        '<div><b>ข้อมูลการจัดส่ง</b><div style="font-size:14px">'+
+        'ขนส่ง: '+esc(o.carrier||'ยังไม่ได้กำหนด')+'<br>'+
+        'เลขพัสดุ: '+esc(o.tracking_no||'-')+'<br>'+
+        'ชำระโดย: '+esc(o.payment_method)+'</div></div>'+
+      '</div>'+
+      '<table style="width:100%;font-size:14px"><tr><th>รายการ</th><th>ราคา/หน่วย</th><th>จำนวน</th><th style="text-align:right">รวม</th></tr>'+
+      items.map(function(i){
+        return '<tr><td>'+esc(i.product_name)+'</td><td>฿'+baht(i.unit_price)+'</td><td>'+i.qty+'</td>'+
+        '<td style="text-align:right">฿'+baht(Number(i.unit_price)*i.qty)+'</td></tr>';
+      }).join('')+'</table>'+
+      '<div style="max-width:280px;margin-left:auto;margin-top:12px">'+
+        '<div class="sum"><span>ยอดรวมสินค้า</span><b>฿'+baht(o.subtotal)+'</b></div>'+
+        (Number(o.discount)? '<div class="sum"><span>ส่วนลด</span><b>−฿'+baht(o.discount)+'</b></div>':'')+
+        '<div class="sum"><span>ค่าจัดส่ง</span><b>'+(Number(o.shipping_fee)?'฿'+baht(o.shipping_fee):'ฟรี')+'</b></div>'+
+        '<div class="sum total"><span>รวมทั้งสิ้น</span><span>฿'+baht(o.total)+'</span></div>'+
+      '</div>'+
+      (o.note? '<div class="note" style="margin-top:14px">หมายเหตุจากลูกค้า: '+esc(o.note)+'</div>':'')+
+      '<div class="slipfoot">ขอบคุณที่อุดหนุนร้าน GreenPlant · หากต้นไม้เสียหายจากการขนส่ง แจ้งเราภายใน 7 วัน</div>'+
+    '</div>'+
+    '<div class="noprint" style="display:flex;gap:10px;margin-top:16px">'+
+      '<button class="btn ghost" onclick="closeModal()">ปิด</button>'+
+      '<button class="btn" onclick="window.print()">พิมพ์</button></div>'+
+    '</div></div>';
+}
 
 </script>
 </body>
