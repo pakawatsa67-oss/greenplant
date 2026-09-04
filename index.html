@@ -63,21 +63,35 @@ a{color:inherit}
 header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar{background:var(--forest);color:#CFE3D4;font-size:12.5px;letter-spacing:.03em}
 .topbar .wrap{display:flex;justify-content:space-between;gap:12px;padding-top:6px;padding-bottom:6px;flex-wrap:wrap}
-.nav{display:flex;align-items:center;gap:18px;padding:12px 0}
+.nav{display:flex;align-items:center;gap:18px;padding:12px 0;flex-wrap:nowrap}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
 .brand .mark{width:38px;height:38px;border-radius:11px;background:var(--forest);display:grid;place-items:center}
 .brand b{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
 .brand small{display:block;font-size:10.5px;letter-spacing:.22em;color:var(--ink-2);text-transform:uppercase;font-family:var(--mono)}
-.navlinks{display:flex;gap:4px;margin-left:8px;flex-wrap:wrap}
-.navlinks button{background:none;border:0;padding:8px 11px;border-radius:9px;font-weight:500;color:var(--ink-2)}
+.navlinks{display:flex;gap:2px;margin-left:6px;flex-wrap:nowrap}
+.navlinks button{background:none;border:0;padding:8px 10px;border-radius:9px;font-weight:500;color:var(--ink-2);white-space:nowrap}
 .navlinks button:hover{background:var(--leaf-soft);color:var(--forest)}
 .navlinks button.on{color:var(--forest);background:var(--leaf-soft);font-weight:600}
-.searchbox{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;min-width:210px;flex:1;max-width:320px}
+.searchbox{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;min-width:130px;flex:0 1 300px}
 .searchbox input{border:0;background:none;outline:none;width:100%}
 .iconbtn{position:relative;background:var(--card);border:1px solid var(--line);border-radius:11px;width:42px;height:42px;display:grid;place-items:center}
 .iconbtn:hover{border-color:var(--leaf)}
 .badge{position:absolute;top:-6px;right:-6px;background:var(--clay);color:#fff;font-size:11px;min-width:19px;height:19px;border-radius:999px;display:grid;place-items:center;padding:0 5px;font-family:var(--mono)}
 .menu-toggle{display:none}
+.mobonly{display:none}
+.acctwrap{position:relative}
+.acctmenu{position:absolute;top:calc(100% + 8px);right:0;min-width:210px;background:var(--card);
+  border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);padding:6px;z-index:80;display:none}
+.acctmenu.open{display:block}
+.acctmenu button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+  background:none;border:0;text-align:left;padding:10px 12px;border-radius:9px;font-size:14px;font-weight:500}
+.acctmenu button:hover{background:var(--leaf-soft);color:var(--forest)}
+.acctmenu .who{padding:10px 12px 8px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.acctmenu .who b{display:block;font-size:14px}
+.acctmenu .who span{font-size:12px;color:var(--ink-2)}
+.acctmenu .danger{color:var(--danger)}
+.acctmenu .danger:hover{background:#F8DFDC;color:var(--danger)}
 
 /* ---------- Buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:11px;padding:11px 18px;font-weight:600;background:var(--forest);color:#fff;transition:.15s}
@@ -352,6 +366,17 @@ footer a:hover{color:#fff}
 input[type=file]{border:1px dashed var(--line);background:var(--card);border-radius:10px;padding:9px 12px;width:100%;font-size:13.5px}
 input[type=file]::file-selector-button{border:0;background:var(--forest);color:#fff;border-radius:7px;padding:5px 11px;margin-right:10px;font-family:inherit;font-size:13px;cursor:pointer}
 
+/* จอกลาง: ย่อโลโก้และซ่อนคำบรรยายใต้ชื่อร้าน เพื่อให้เมนูอยู่บรรทัดเดียว */
+@media (max-width:1150px){
+  .brand small{display:none}
+  .brand b{font-size:20px}
+  .navlinks button{padding:8px 8px;font-size:14px}
+  .nav{gap:12px}
+}
+@media (max-width:960px){
+  .searchbox{flex:0 1 190px}
+  .navlinks button{padding:8px 6px;font-size:13.5px}
+}
 @media (max-width:900px){
   .authwrap{grid-template-columns:1fr}
   .authside{display:none}
@@ -363,9 +388,15 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
   footer .cols{grid-template-columns:1fr 1fr}
 }
 @media (max-width:760px){
-  .menu-toggle{display:grid}
-  .navlinks{display:none;width:100%;order:5;flex-direction:column;align-items:stretch;padding-bottom:10px}
+  .menu-toggle{display:grid;order:-1}
+  .brand{order:0;margin-right:auto}
+  .searchbox{order:4;flex:1 1 100%}
+  .navlinks{display:none;width:100%;order:5;flex-direction:column;align-items:stretch;padding-bottom:10px;gap:2px}
   .navlinks.open{display:flex}
+  .navlinks button{text-align:left;padding:12px 14px;font-size:15px}
+  .mobonly{display:block}
+  .deskonly{display:none}
+  .brand small{display:none}
   .nav{flex-wrap:wrap}
   .searchbox{order:4;max-width:none;width:100%;margin-left:0}
   .row2{grid-template-columns:1fr}
@@ -411,18 +442,21 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
     <nav class="navlinks" id="navlinks" aria-label="เมนูหลัก">
       <button data-nav="home" onclick="go('home')">หน้าแรก</button>
       <button data-nav="shop" onclick="go('shop')">สินค้าทั้งหมด</button>
-      <button data-nav="compare" onclick="go('compare')">เปรียบเทียบ <span id="cmpN" class="mono"></span></button>
       <button data-nav="auction" onclick="go('auction')">ห้องประมูล</button>
-      <button data-nav="about" onclick="go('about')">เกี่ยวกับเรา</button>
       <button data-nav="track" onclick="go('track')">ติดตามพัสดุ</button>
-      <button data-nav="orders" onclick="go('orders')">บัญชีของฉัน</button>
-      <button data-nav="admin" onclick="go('admin')">สำหรับผู้ขาย</button>
+      <button data-nav="about" onclick="go('about')">เกี่ยวกับเรา</button>
+      <button data-nav="compare" class="mobonly" onclick="go('compare')">เปรียบเทียบสินค้า</button>
+      <button data-nav="wish" class="mobonly" onclick="go('wish')">รายการโปรด</button>
     </nav>
     <div class="searchbox">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7C8E84" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="q" type="search" aria-label="ค้นหาสินค้า" placeholder="ค้นหาต้นไม้ กระถาง ดินปลูก…" oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter')go('shop')">
     </div>
-    <button class="iconbtn" onclick="go('wish')" title="รายการโปรด" aria-label="รายการโปรด">
+    <button class="iconbtn deskonly" data-nav="compare" onclick="go('compare')" title="เปรียบเทียบสินค้า" aria-label="เปรียบเทียบสินค้า">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12241D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+      <span class="badge" id="cmpN" style="display:none">0</span>
+    </button>
+    <button class="iconbtn deskonly" onclick="go('wish')" title="รายการโปรด" aria-label="รายการโปรด">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12241D" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0112 8.6 4 4 0 0119 10.8C19 15.6 12 20 12 20z"/></svg>
       <span class="badge" id="wishN" style="display:none">0</span>
     </button>
@@ -430,9 +464,13 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12241D" stroke-width="1.8" stroke-linecap="round"><path d="M4 5h2l2.2 10.2a2 2 0 002 1.6h6.9a2 2 0 002-1.55L21 8H7"/><circle cx="10" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>
       <span class="badge" id="cartN">0</span>
     </button>
-    <button class="iconbtn" onclick="openAuth()" title="บัญชีผู้ใช้" aria-label="บัญชีผู้ใช้">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12241D" stroke-width="1.8"><circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20c1.4-3.6 4.2-5.4 7.5-5.4s6.1 1.8 7.5 5.4"/></svg>
-    </button>
+    <div class="acctwrap">
+      <button class="iconbtn" id="acctBtn" onclick="toggleAcctMenu(event)" title="บัญชีผู้ใช้"
+              aria-label="บัญชีผู้ใช้" aria-haspopup="true" aria-expanded="false">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12241D" stroke-width="1.8"><circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20c1.4-3.6 4.2-5.4 7.5-5.4s6.1 1.8 7.5 5.4"/></svg>
+      </button>
+      <div class="acctmenu" id="acctMenu" role="menu" aria-label="เมนูบัญชีผู้ใช้"></div>
+    </div>
     <button class="iconbtn menu-toggle" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="เมนู">
       <svg width="20" height="20" viewBox="0 0 24 24" stroke="#12241D" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
@@ -2689,6 +2727,41 @@ document.addEventListener('mousedown', function(e){
   var t = e.target.closest && e.target.closest('button, a');
   if(t && !t.closest('#modalRoot')) S.lastFocus = t;
 }, true);
+
+
+/* ---------- เมนูบัญชีผู้ใช้แบบดรอปดาวน์ ---------- */
+function acctMenuHTML(){
+  if(S.user){
+    return '<div class="who"><b>'+esc(S.user.name||S.user.email)+'</b>'+
+      '<span>'+(isAdmin()? 'ผู้ดูแลร้าน' : 'เครดิตคงเหลือ ฿'+baht(S.user.credit-S.user.used))+'</span></div>'+
+      '<button role="menuitem" onclick="closeAcctMenu();go(\'orders\')">บัญชีของฉัน</button>'+
+      '<button role="menuitem" onclick="closeAcctMenu();go(\'wish\')">รายการโปรด</button>'+
+      (isAdmin()? '<button role="menuitem" onclick="closeAcctMenu();go(\'admin\')">ระบบหลังร้าน</button>':'')+
+      '<button role="menuitem" class="danger" onclick="closeAcctMenu();logout()">ออกจากระบบ</button>';
+  }
+  return '<button role="menuitem" onclick="closeAcctMenu();openAuth()">เข้าสู่ระบบ</button>'+
+    '<button role="menuitem" onclick="closeAcctMenu();openAuth(\'reg\')">สมัครสมาชิก</button>'+
+    '<button role="menuitem" onclick="closeAcctMenu();go(\'orders\')">คำสั่งซื้อของฉัน</button>'+
+    '<button role="menuitem" onclick="closeAcctMenu();openAuth(\'login\', true)">สำหรับผู้ขาย</button>';
+}
+function toggleAcctMenu(e){
+  if(e) e.stopPropagation();
+  var m=$('acctMenu'), btn=$('acctBtn');
+  if(!m) return;
+  var open = !m.classList.contains('open');
+  m.innerHTML = acctMenuHTML();
+  m.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function closeAcctMenu(){
+  var m=$('acctMenu'), btn=$('acctBtn');
+  if(m) m.classList.remove('open');
+  if(btn) btn.setAttribute('aria-expanded','false');
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest || !e.target.closest('.acctwrap')) closeAcctMenu();
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAcctMenu(); });
 /* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
    ========================================================= */
@@ -3599,16 +3672,21 @@ function render(){
 
   $('cartN').textContent=cartCount();
   $('cartN').style.display=cartCount()?'grid':'none';
-  $('cmpN').textContent=S.compare.length? '('+S.compare.length+')':'';
+  var cn=$('cmpN');
+  if(cn){ cn.textContent=S.compare.length; cn.style.display=S.compare.length?'grid':'none'; }
   var wn=$('wishN');
   if(wn){ wn.textContent=S.wish.length; wn.style.display=S.wish.length?'grid':'none'; }
   $('whoami').textContent = isAdmin() ? 'โหมดผู้ดูแลร้าน · '+(S.user.name||S.user.email)
     : (S.user? 'สมาชิก: '+(S.user.name||S.user.email)+' · เครดิตคงเหลือ ฿'+baht(S.user.credit-S.user.used)
              : 'ยังไม่ได้เข้าสู่ระบบ');
-  var adminBtn=document.querySelector('[data-nav="admin"]');
-  if(adminBtn) adminBtn.textContent = isAdmin()? 'หลังร้าน' : 'สำหรับผู้ขาย';
-  var btns=document.querySelectorAll('.navlinks button');
-  for(var i=0;i<btns.length;i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-nav')===v);
+  var btns=document.querySelectorAll('[data-nav]');
+  for(var i=0;i<btns.length;i++){
+    var isOn = btns[i].getAttribute('data-nav')===v;
+    btns[i].classList.toggle('on', isOn);
+    if(isOn && btns[i].closest('.navlinks')) btns[i].setAttribute('aria-current','page');
+    else btns[i].removeAttribute('aria-current');
+  }
+  if($('acctMenu') && $('acctMenu').classList.contains('open')) $('acctMenu').innerHTML = acctMenuHTML();
   var qEl=$('q'); if(qEl && qEl.value!==S.q) qEl.value=S.q;
 }
 
