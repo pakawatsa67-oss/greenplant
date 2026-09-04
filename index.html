@@ -579,7 +579,7 @@ function ppPayload(amount){
 /* ---------- 3) ข้อมูลที่โหลดมาเก็บไว้ในเครื่อง ---------- */
 var DB = { products:[], ratings:{}, reviews:{}, myOrders:[], adminOrders:[], members:[], messages:[],
            auctions:[], bids:{}, coupons:[], subscribers:[],
-           summary:null, myReviews:[], myBids:[] };
+           summary:null, myReviews:[], myBids:[], audit:[] };
 
 /* ---------- 4) สถานะหน้าจอ ---------- */
 var S = {
@@ -589,7 +589,7 @@ var S = {
   step:1, checkout:{name:'',phone:'',addr:'',note:'',pay:PAYMENTS[0].v,slip:null,slipName:''},
   lastOrder:null, track:null, trackCode:'', tab:'dash', editing:null,
   coupon:null, accept:false, cookieDone:false, legalTab:'privacy', aboutTab:'about', acctTab:'dash', wish:[],
-  editCoupon:null, editAuction:null, tick:null, ordQ:'', ordStatus:'all', openPid:null, lastFocus:null
+  editCoupon:null, editAuction:null, tick:null, ordQ:'', ordStatus:'all', openPid:null, lastFocus:null, viewed:[]
 };
 
 /* ---------- 5) ฟังก์ชันช่วยเหลือ ---------- */
@@ -746,6 +746,13 @@ async function logout(){
   toast('ออกจากระบบแล้ว'); go('home');
 }
 
+/* ---------- 8ข) กันการกดซ้ำระหว่างที่คำสั่งเดิมยังทำงานอยู่ ---------- */
+/* เน็ตช้าแล้วผู้ใช้กดปุ่มรัว ๆ เป็นเรื่องปกติ ถ้าไม่กันไว้จะได้คำสั่งซื้อซ้ำหลายใบ */
+var _inFlight = {};
+function locked(key){ return !!_inFlight[key]; }
+function lock(key){ _inFlight[key] = true; }
+function unlock(key){ delete _inFlight[key]; }
+
 /* ---------- 9) สั่งซื้อสินค้า ---------- */
 async function uploadSlip(file){
   var ext = (file.name.split('.').pop()||'jpg').toLowerCase();
@@ -757,6 +764,8 @@ async function uploadSlip(file){
 
 async function placeOrder(){
   if(!S.cart.length){ toast('ยังไม่มีสินค้าในตะกร้า'); return; }
+  if(locked('order')){ return; }        // กำลังส่งคำสั่งซื้ออยู่แล้ว ไม่ต้องส่งซ้ำ
+  lock('order');
   var c=S.checkout;
   setBusy(true);
   try{
@@ -780,7 +789,7 @@ async function placeOrder(){
     await trackByCode(S.lastOrder, true, c.phone);
     go('done');
   }catch(e){ toast(errMsg(e)); }
-  finally{ setBusy(false); }
+  finally{ setBusy(false); unlock('order'); }
 }
 
 /* ---------- 10) ติดตามพัสดุ ---------- */
@@ -828,6 +837,8 @@ async function addReview(pid){
   if(!S.user){ toast('เข้าสู่ระบบก่อนจึงจะเขียนรีวิวได้'); return; }
   var body=$('rvText').value.trim();
   if(!body){ toast('กรุณาเขียนรายละเอียดรีวิวก่อนส่ง'); return; }
+  if(locked('review'+pid)) return;
+  lock('review'+pid);
   setBusy(true);
   try{
     var r = await sb.from('reviews').insert({
@@ -842,7 +853,7 @@ async function addReview(pid){
     openProduct(pid);
     render();
   }catch(e){ toast(errMsg(e)); }
-  finally{ setBusy(false); }
+  finally{ setBusy(false); unlock('review'+pid); }
 }
 
 /* ---------- 13) ข้อความติดต่อร้าน ---------- */
@@ -879,10 +890,15 @@ async function loadAdmin(){
   if(!r3.error) DB.messages = r3.data;
 
   await loadPromo();
+
+  var r4 = await sb.from('audit_logs').select('*').order('created_at', {ascending:false}).limit(100);
+  if(!r4.error) DB.audit = r4.data;
 }
 
 /* ---------- 15) เปลี่ยนสถานะคำสั่งซื้อ ---------- */
 async function orderAction(code, action, carrier, track, reason){
+  if(locked('act'+code)) return;
+  lock('act'+code);
   setBusy(true);
   try{
     var r = await sb.rpc('admin_update_order', {
@@ -895,7 +911,7 @@ async function orderAction(code, action, carrier, track, reason){
     toast(r.data.message);
     render();
   }catch(e){ toast(errMsg(e)); }
-  finally{ setBusy(false); }
+  finally{ setBusy(false); unlock('act'+code); }
 }
 function approveOrder(code){ orderAction(code, 'approve'); }
 function packOrder(code){ orderAction(code, 'packing'); }
@@ -1154,6 +1170,8 @@ async function placeBid(aid){
   if(!S.user){ toast('ต้องเข้าสู่ระบบสมาชิกก่อนจึงจะเสนอราคาได้'); openAuth(); return; }
   var amt = Number($('bidAmt').value);
   if(!(amt>0)){ toast('กรอกจำนวนเงินที่ต้องการเสนอ'); return; }
+  if(locked('bid'+aid)) return;
+  lock('bid'+aid);
   setBusy(true);
   try{
     var r = await sb.rpc('place_bid', {p_auction:aid, p_amount:amt});
@@ -1164,7 +1182,7 @@ async function placeBid(aid){
     openAuction(aid);
     render();
   }catch(e){ toast(errMsg(e)); }
-  finally{ setBusy(false); }
+  finally{ setBusy(false); unlock('bid'+aid); }
 }
 
 /* ---------- 24) จัดการการประมูล (ผู้ดูแล) ---------- */
@@ -1247,6 +1265,8 @@ function askCancelOrder(code){
     '<button class="btn danger" onclick="doCancelOrder(\''+esc(code)+'\')">ยืนยันยกเลิก</button></div></div></div>';
 }
 async function doCancelOrder(code){
+  if(locked('cancel'+code)) return;
+  lock('cancel'+code);
   setBusy(true);
   try{
     var why = $('cancelWhy') ? $('cancelWhy').value : null;
@@ -1733,8 +1753,20 @@ function viewHome(){
         '<div><b>ชำระด้วยพร้อมเพย์</b><p>สแกน QR โอนแล้วแนบสลิป ร้านตรวจสอบและอนุมัติให้ภายใน 1 ชั่วโมง</p></div>'+
         '<div><b>ตอบรับคำสั่งซื้อ</b><p>ออกเลขที่คำสั่งซื้อและใบตอบรับทันทีเมื่อยืนยันการสั่งซื้อ</p></div>'+
       '</div></div></section>'+
+    recentlyViewed()+
     '<section style="padding-top:0">'+ newsletterBox() +'</section>'+
   '</div>';
+}
+
+/* ---------- สินค้าที่เพิ่งดู ---------- */
+function recentlyViewed(){
+  var ps = S.viewed.map(P).filter(function(p){ return p && p.is_active; }).slice(0, 4);
+  if(ps.length < 2) return '';
+  return '<section style="padding-top:8px"><div class="sechead"><div>'+
+    '<div class="eyebrow">ดูล่าสุด</div><h2>สินค้าที่คุณเพิ่งดู</h2>'+
+    '<p>กลับมาดูอีกครั้งก่อนตัดสินใจ</p></div>'+
+    '<button class="btn ghost" onclick="S.viewed=[];render()">ล้างประวัติการดู</button></div>'+
+    '<div class="grid">'+ ps.map(card).join('') +'</div></section>';
 }
 
 /* ---------- บทที่ 5: แบนเนอร์โปรโมชันและสมัครรับข่าวสาร ---------- */
@@ -1797,6 +1829,7 @@ function viewShop(){
 /* ---------- 26) รายละเอียดสินค้าและรีวิว ---------- */
 async function openProduct(id){
   var p=P(id); if(!p) return;
+  S.viewed = [id].concat(S.viewed.filter(function(x){ return x!==id; })).slice(0, 8);
   S.openPid = id;
   setProductHash(id);
   drawProduct(p, DB.reviews[id] || null);
@@ -3236,7 +3269,8 @@ function viewAdmin(){
     '<button class="btn clay" onclick="logout()">ออกจากระบบ</button></div></div></div>'+
     '<div class="tabs">'+
     [['dash','ภาพรวม'],['cat','จัดการสินค้า (E-Catalog)'],['ord','คำสั่งซื้อและการอนุมัติ'],['ship','การจัดส่งและติดตาม'],
-     ['mem','สมาชิกและเครดิต'],['promo','โปรโมชันและคูปอง'],['auc','การประมูล'],['seo','ตรวจ SEO'],['msg','รีวิวและข้อความ']]
+     ['mem','สมาชิกและเครดิต'],['promo','โปรโมชันและคูปอง'],['auc','การประมูล'],['seo','ตรวจ SEO'],
+     ['msg','รีวิวและข้อความ'],['log','บันทึกการทำงาน']]
       .map(function(t){
         var n = 0;
         if(t[0]==='ord')  n = DB.adminOrders.filter(function(o){return o.status==='await';}).length;
@@ -3257,6 +3291,7 @@ function viewAdmin(){
   if(S.tab==='promo')body=adminPromo();
   if(S.tab==='auc')  body=adminAuction();
   if(S.tab==='seo')  body=seoAudit();
+  if(S.tab==='log')  body=adminAudit();
   return head+body+'</section></div>';
 }
 
@@ -3642,6 +3677,25 @@ async function boot(){
   }
 }
 boot();
+
+/* ---------- 41ข) บันทึกการทำงานของผู้ดูแล ---------- */
+function adminAudit(){
+  var logs = DB.audit || [];
+  return '<div class="panel"><h3>บันทึกการทำงานของผู้ดูแล ('+logs.length+' รายการล่าสุด)</h3>'+
+    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 14px">'+
+    'ระบบบันทึกการแก้ไขสินค้า การปรับสต็อก การปรับวงเงินเครดิต และการเปลี่ยนสถานะบัญชีโดยอัตโนมัติ '+
+    'บันทึกนี้แก้ไขและลบไม่ได้ เพื่อให้ตรวจสอบย้อนหลังได้ว่าใครทำอะไรเมื่อไร</p>'+
+    (logs.length? '<div class="tblwrap"><table><tr><th>เวลา</th><th>ผู้ดำเนินการ</th><th>การกระทำ</th><th>รายการ</th><th>รายละเอียด</th></tr>'+
+      logs.map(function(l){
+        return '<tr><td class="mono" style="font-size:12.5px;white-space:nowrap">'+esc(thaiDate(l.created_at))+'</td>'+
+        '<td>'+esc(l.actor_name)+'</td>'+
+        '<td><span class="chip">'+esc(l.action)+'</span></td>'+
+        '<td>'+esc(l.target)+'</td>'+
+        '<td style="font-size:13px;color:var(--ink-2)">'+esc(l.detail)+'</td></tr>';
+      }).join('')+'</table></div>'
+      : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีการเปลี่ยนแปลงข้อมูลที่ถูกบันทึก</p>')+
+    '</div>';
+}
 
 /* ---------- 42) ใบส่งของสำหรับแนบไปกับพัสดุ ---------- */
 function printSlip(code){
