@@ -278,6 +278,12 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .pdetail{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .pdetail .big{background:linear-gradient(170deg,#EDF3EC,#DCE8DA);border-radius:16px;aspect-ratio:1;display:grid;place-items:center}
 .pdetail .big svg{width:76%}
+.galthumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.galthumb{width:62px;height:62px;border:2px solid var(--line);border-radius:10px;overflow:hidden;
+  padding:0;background:#EDF3EC;cursor:pointer;transition:.15s}
+.galthumb:hover{border-color:var(--leaf)}
+.galthumb.on{border-color:var(--forest)}
+.galthumb img{width:100%;height:100%;object-fit:cover;display:block}
 .spec{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px;margin:14px 0}
 .spec dt{color:var(--ink-2)}
 .spec dd{margin:0;font-weight:500}
@@ -1000,12 +1006,19 @@ async function saveProduct(){
   if(row.stock<0){ toast('จำนวนคงเหลือติดลบไม่ได้'); return; }
   setBusy(true);
   try{
-    // รูปจาก Pexels: กรอกแค่เลข id จากลิงก์ ระบบสร้าง URL ให้เอง
+    // รูปจาก Pexels: กรอกเลข id คั่นด้วยคอมมาได้หลายรูป ระบบสร้าง URL ให้เอง
     var px = $('e_px').value.trim();
     if(px){
-      var num = (px.match(/(\d{4,})\/?\s*$/) || px.match(/(\d{4,})/) || [])[1];
-      if(!num){ toast('รหัสรูป Pexels ไม่ถูกต้อง ต้องเป็นตัวเลข เช่น 18343648'); setBusy(false); return; }
-      row.image_url = 'https://images.pexels.com/photos/'+num+'/pexels-photo-'+num+'.jpeg?auto=compress&cs=tinysrgb&w=900';
+      var ids = px.split(/[,\s]+/).map(function(x){
+        var m = x.match(/(\d{4,})/);
+        return m ? m[1] : null;
+      }).filter(Boolean);
+      if(!ids.length){ toast('รหัสรูป Pexels ไม่ถูกต้อง ต้องเป็นตัวเลข เช่น 18343648'); setBusy(false); return; }
+      if(ids.length > 6){ toast('ใส่รูปได้สูงสุด 6 รูปต่อสินค้าหนึ่งชิ้น'); setBusy(false); return; }
+      row.images = ids.map(function(n){
+        return 'https://images.pexels.com/photos/'+n+'/pexels-photo-'+n+'.jpeg?auto=compress&cs=tinysrgb&w=900';
+      });
+      row.image_url = row.images[0];
     }
     var file = $('e_img').files[0];
     if(file){
@@ -1014,8 +1027,10 @@ async function saveProduct(){
       var up = await sb.storage.from('product-images').upload(path, file, {upsert:true});
       if(up.error) throw up.error;
       row.image_url = sb.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+      row.images = [row.image_url];
     } else if(!row.image_url && e.image_url){
       row.image_url = e.image_url;
+      row.images = e.images && e.images.length ? e.images : [e.image_url];
     }
     var r = e.id ? await sb.from('products').update(row).eq('id', e.id)
                  : await sb.from('products').insert(row);
@@ -1881,7 +1896,7 @@ function drawProduct(p, rv){
   $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="pdetail">'+
-      '<div><div class="big">'+pic(p)+'</div>'+
+      '<div>'+ gallery(p) +
         '<div class="note" style="margin-top:12px">จัดส่งพร้อมกล่องกันกระแทกและคู่มือการดูแลฉบับย่อ · รับประกันต้นเสียหายจากการขนส่ง 7 วัน</div></div>'+
       '<div>'+
         '<span class="sku">'+esc(p.sku)+' · '+esc(p.category)+'</span>'+
@@ -2762,6 +2777,29 @@ document.addEventListener('click', function(e){
   if(!e.target.closest || !e.target.closest('.acctwrap')) closeAcctMenu();
 });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAcctMenu(); });
+
+
+/* ---------- แกลเลอรีรูปสินค้า ---------- */
+function gallery(p){
+  var imgs = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+  if(imgs.length < 2){
+    return '<div class="big" id="galMain">'+pic(p)+'</div>';
+  }
+  return '<div class="big" id="galMain">'+
+      '<img src="'+esc(imgs[0])+'" alt="'+esc(p.name)+'" class="pimg">'+
+    '</div>'+
+    '<div class="galthumbs">'+ imgs.map(function(u,i){
+      return '<button class="galthumb'+(i===0?' on':'')+'" onclick="pickGallery(this,\''+esc(u)+'\',\''+esc(p.name)+'\')" '+
+        'aria-label="ดูรูปที่ '+(i+1)+'"><img src="'+esc(u)+'" alt="'+esc(p.name)+' รูปที่ '+(i+1)+'" loading="lazy"></button>';
+    }).join('') +'</div>';
+}
+function pickGallery(btn, url, name){
+  var main = $('galMain');
+  if(main) main.innerHTML = '<img src="'+url+'" alt="'+name+'" class="pimg">';
+  var all = document.querySelectorAll('.galthumb');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('on');
+  btn.classList.add('on');
+}
 /* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
    ========================================================= */
@@ -3469,9 +3507,11 @@ function adminCatalog(){
       '<div class="field"><label class="f" for="e_old">ราคาก่อนลด (0 = ไม่มี)</label><input id="e_old" type="number" min="0" value="'+e.old_price+'"></div></div>'+
       '<div class="row2"><div class="field"><label class="f" for="e_stock">จำนวนคงเหลือ</label><input id="e_stock" type="number" min="0" value="'+e.stock+'"></div>'+
       '<div class="field"><label class="f" for="e_art">ภาพประกอบสำรอง</label><select id="e_art" onchange="previewArt(this.value)">'+ART_KEYS.map(function(a){return '<option'+(e.art_key===a?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div></div>'+
-      '<div class="field"><label class="f" for="e_px">รหัสรูปจาก Pexels (วางเฉพาะตัวเลขท้ายลิงก์)</label>'+
-      '<input id="e_px" type="text" placeholder="เช่น 18343648 หรือวางลิงก์ทั้งอันก็ได้">'+
-      '<div class="sku" style="margin-top:5px">เปิด pexels.com ค้นชื่อต้นไม้ กดรูปที่ชอบ แล้วก๊อปตัวเลขท้าย URL มาวาง</div></div>'+
+      '<div class="field"><label class="f" for="e_px">รหัสรูปจาก Pexels (ใส่ได้หลายรูป คั่นด้วยคอมมา)</label>'+
+      '<input id="e_px" type="text" placeholder="เช่น 18343648, 6597437, 5858235">'+
+      '<div class="sku" style="margin-top:5px">เปิด pexels.com ค้นชื่อต้นไม้ กดรูปที่ชอบ ก๊อปตัวเลขท้าย URL มาวาง '+
+      'ใส่ได้สูงสุด 6 รูป รูปแรกจะเป็นรูปหลักบนการ์ดสินค้า'+
+      ((e.images && e.images.length)? ' · ตอนนี้มี '+e.images.length+' รูป':'')+'</div></div>'+
       '<div class="field"><label class="f" for="e_img">หรืออัปโหลดรูปจากเครื่อง (ไม่บังคับ)</label><input id="e_img" type="file" accept="image/*"></div>'+
       (e.image_url? '<div class="field"><button class="btn sm ghost" onclick="S.editing.image_url=null;render()">ลบรูปปัจจุบัน กลับไปใช้ภาพวาด</button></div>':'')+
       '<div class="field"><label class="f" for="e_size">ขนาด</label><input id="e_size" type="text" value="'+esc(e.size_label)+'"></div>'+
@@ -3485,6 +3525,9 @@ function adminCatalog(){
       '<button class="btn ghost" onclick="S.editing=null;render()">ยกเลิก</button></div></div>'+
       '<div class="panel"><h3>ตัวอย่างภาพ</h3><div id="artPrev" style="background:#EDF3EC;border-radius:14px;padding:18px;display:grid;place-items:center">'+
       (e.image_url? '<img src="'+esc(e.image_url)+'" class="pimg" alt="ตัวอย่างรูปสินค้า">' : art(e.art_key))+'</div>'+
+      ((e.images && e.images.length>1)? '<div class="galthumbs" style="margin-top:10px">'+
+        e.images.map(function(u){ return '<div class="galthumb"><img src="'+esc(u)+'" alt="รูปสินค้าเพิ่มเติม" loading="lazy"></div>'; }).join('')+
+        '</div>':'')+
       '<div class="note" style="margin-top:12px">หากไม่อัปโหลดรูปจริง ระบบจะใช้ภาพประกอบ SVG ที่วาดไว้ในตัวเว็บ ทำให้หน้าเว็บโหลดเร็วและไม่มีรูปเสีย</div></div></div>';
   }
   return '<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">'+
