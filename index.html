@@ -72,8 +72,22 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
 .navlinks button{background:none;border:0;padding:8px 10px;border-radius:9px;font-weight:500;color:var(--ink-2);white-space:nowrap}
 .navlinks button:hover{background:var(--leaf-soft);color:var(--forest)}
 .navlinks button.on{color:var(--forest);background:var(--leaf-soft);font-weight:600}
-.searchbox{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
-  border-radius:999px;padding:7px 14px;min-width:130px;flex:0 1 300px}
+.searchwrap{position:relative;margin-left:auto;flex:0 1 300px;min-width:130px}
+.searchbox{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px}
+.sgbox{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;box-shadow:var(--shadow);padding:6px;z-index:90;display:none;max-height:340px;overflow:auto}
+.sgbox.open{display:block}
+.sgitem{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:8px;border-radius:10px;text-align:left}
+.sgitem:hover{background:var(--leaf-soft)}
+.sgimg{width:40px;height:40px;border-radius:8px;background:#EDF3EC;overflow:hidden;flex-shrink:0;display:grid;place-items:center}
+.sgimg svg{width:90%;height:90%}
+.sgtxt{display:grid;min-width:0}
+.sgtxt b{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sgtxt small{font-size:12px;color:var(--ink-2)}
+.sgall{width:100%;background:none;border:0;border-top:1px solid var(--line);margin-top:4px;padding:10px;
+  font-size:13.5px;font-weight:600;color:var(--forest)}
+.sgall:hover{background:var(--leaf-soft)}
 .searchbox input{border:0;background:none;outline:none;width:100%}
 .iconbtn{position:relative;background:var(--card);border:1px solid var(--line);border-radius:11px;width:42px;height:42px;display:grid;place-items:center}
 .iconbtn:hover{border-color:var(--leaf)}
@@ -386,7 +400,7 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
   .nav{gap:12px}
 }
 @media (max-width:960px){
-  .searchbox{flex:0 1 190px}
+  .searchwrap{flex:0 1 190px}
   .navlinks button{padding:8px 6px;font-size:13.5px}
 }
 @media (max-width:900px){
@@ -402,7 +416,7 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
 @media (max-width:760px){
   .menu-toggle{display:grid;order:-1}
   .brand{order:0;margin-right:auto}
-  .searchbox{order:4;flex:1 1 100%}
+  .searchwrap{order:4;flex:1 1 100%}
   .navlinks{display:none;width:100%;order:5;flex-direction:column;align-items:stretch;padding-bottom:10px;gap:2px}
   .navlinks.open{display:flex}
   .navlinks button{text-align:left;padding:12px 14px;font-size:15px}
@@ -410,7 +424,7 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
   .deskonly{display:none}
   .brand small{display:none}
   .nav{flex-wrap:wrap}
-  .searchbox{order:4;max-width:none;width:100%;margin-left:0}
+  .searchwrap{order:4;max-width:none;width:100%;margin-left:0}
   .row2{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
@@ -460,9 +474,13 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
       <button data-nav="compare" class="mobonly" onclick="go('compare')">เปรียบเทียบสินค้า</button>
       <button data-nav="wish" class="mobonly" onclick="go('wish')">รายการโปรด</button>
     </nav>
-    <div class="searchbox">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7C8E84" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="q" type="search" aria-label="ค้นหาสินค้า" placeholder="ค้นหาต้นไม้ กระถาง ดินปลูก…" oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter')go('shop')">
+    <div class="searchwrap">
+      <div class="searchbox">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7C8E84" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="q" type="search" aria-label="ค้นหาสินค้า" autocomplete="off" placeholder="ค้นหาต้นไม้ กระถาง ดินปลูก…"
+               oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter'){closeSuggest();go('shop')}">
+      </div>
+      <div class="sgbox" id="sgBox" role="listbox" aria-label="คำแนะนำการค้นหา"></div>
     </div>
     <button class="iconbtn deskonly" data-nav="compare" onclick="go('compare')" title="เปรียบเทียบสินค้า" aria-label="เปรียบเทียบสินค้า">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12241D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
@@ -976,6 +994,63 @@ function shipOrder(code){
   var carrier=$('car_'+code).value, no=$('trk_'+code).value.trim();
   if(!no){ toast('กรอกเลขพัสดุก่อนบันทึกการจัดส่ง'); return; }
   orderAction(code, 'ship', carrier, no);
+}
+
+/* ---------- 15ข) แก้ไขข้อมูลจัดส่งของคำสั่งซื้อ ---------- */
+/* ลูกค้าพิมพ์ที่อยู่ผิดหรือเบอร์ตกหล่นเป็นเรื่องปกติ ร้านต้องแก้ได้ก่อนส่งของ */
+function openEditShipping(code){
+  var o=null; DB.adminOrders.forEach(function(x){ if(x.code===code) o=x; });
+  if(!o) return;
+  if(['shipped','done'].indexOf(o.status)>-1){
+    toast('พัสดุถูกส่งออกไปแล้ว แก้ไขข้อมูลผู้รับไม่ได้');
+    return;
+  }
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
+    '<div class="modal narrow" role="dialog" aria-modal="true">'+
+    '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
+    '<div class="eyebrow">Edit Delivery Info</div>'+
+    '<h2 style="font-family:var(--display);font-size:23px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
+      'แก้ไขข้อมูลจัดส่ง '+esc(o.code)+'</h2>'+
+    '<p style="color:var(--ink-2);font-size:13.5px;margin:0 0 14px">แก้ได้เฉพาะก่อนบันทึกการจัดส่ง ระบบจะบันทึกไว้ในไทม์ไลน์และประวัติการทำงาน</p>'+
+    '<div class="field"><label class="f" for="es_name">ชื่อผู้รับ</label>'+
+    '<input id="es_name" type="text" value="'+esc(o.receiver_name)+'"></div>'+
+    '<div class="field"><label class="f" for="es_phone">เบอร์โทรศัพท์</label>'+
+    '<input id="es_phone" type="tel" value="'+esc(o.phone)+'"></div>'+
+    '<div class="field"><label class="f" for="es_addr">ที่อยู่จัดส่ง</label>'+
+    '<textarea id="es_addr" rows="3">'+esc(o.address)+'</textarea></div>'+
+    '<div class="field"><label class="f" for="es_why">เหตุผลที่แก้ไข</label>'+
+    '<input id="es_why" type="text" placeholder="เช่น ลูกค้าแจ้งแก้ไขทางไลน์"></div>'+
+    '<div style="display:flex;gap:10px"><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>'+
+    '<button class="btn" onclick="saveShipping(\''+esc(code)+'\')">บันทึกการแก้ไข</button></div></div></div>';
+}
+async function saveShipping(code){
+  var n=$('es_name').value.trim(), t=$('es_phone').value.trim(), a=$('es_addr').value.trim(),
+      why=$('es_why').value.trim();
+  if(!n||!t||!a){ toast('กรอกชื่อ เบอร์โทร และที่อยู่ให้ครบ'); return; }
+  if(!/^[0-9\-\s]{9,15}$/.test(t)){ toast('รูปแบบเบอร์โทรไม่ถูกต้อง'); return; }
+  if(locked('ship'+code)) return;
+  lock('ship'+code);
+  setBusy(true);
+  try{
+    var o=null; DB.adminOrders.forEach(function(x){ if(x.code===code) o=x; });
+    var r = await sb.from('orders').update({receiver_name:n, phone:t, address:a}).eq('code', code);
+    if(r.error) throw r.error;
+
+    var changed = [];
+    if(o && o.receiver_name!==n) changed.push('ชื่อผู้รับ');
+    if(o && o.phone!==t)         changed.push('เบอร์โทร');
+    if(o && o.address!==a)       changed.push('ที่อยู่');
+    var note = 'ผู้ดูแลแก้ไข' + (changed.length? changed.join(', ') : 'ข้อมูลจัดส่ง') +
+               (why ? ' — ' + why : '');
+    await sb.from('order_logs').insert({order_id:o.id, message:note});
+    try{ await sb.rpc('log_action', {p_action:'แก้ไขข้อมูลจัดส่ง', p_target:code, p_detail:note}); }catch(e0){}
+
+    closeModal();
+    await loadAdmin();
+    toast('บันทึกข้อมูลจัดส่งใหม่แล้ว');
+    render();
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); unlock('ship'+code); }
 }
 
 /* ---------- 16) เปิดดูสลิปโอนเงิน (ลิงก์ชั่วคราว 60 วินาที) ---------- */
@@ -1626,7 +1701,49 @@ async function go(v){
     if(v==='admin') { await loadAdmin(); render(); }
   }catch(e){ toast(errMsg(e)); }
 }
-function onSearch(v){ S.q=v; if(S.view!=='shop') S.view='shop'; render(); }
+function onSearch(v){
+  S.q=v;
+  if(S.view!=='shop') S.view='shop';
+  render();
+  showSuggest(v);
+}
+
+/* ---------- คำแนะนำขณะพิมพ์ค้นหา ---------- */
+function suggestFor(q){
+  q = (q||'').trim().toLowerCase();
+  if(q.length < 1) return [];
+  return DB.products.filter(function(p){
+    return p.is_active &&
+      (p.name+' '+p.sci_name+' '+p.category).toLowerCase().indexOf(q) > -1;
+  }).slice(0, 5);
+}
+function showSuggest(v){
+  var box = $('sgBox');
+  if(!box) return;
+  var list = suggestFor(v);
+  if(!list.length){ box.classList.remove('open'); box.innerHTML=''; return; }
+  box.innerHTML = list.map(function(p){
+    return '<button class="sgitem" onclick="pickSuggest('+p.id+')">'+
+      '<span class="sgimg">'+pic(p)+'</span>'+
+      '<span class="sgtxt"><b>'+esc(p.name)+'</b><small>'+esc(p.category)+' · ฿'+baht(p.price)+'</small></span>'+
+      '</button>';
+  }).join('') + '<button class="sgall" onclick="closeSuggest();go(\'shop\')">ดูผลการค้นหาทั้งหมด</button>';
+  box.classList.add('open');
+}
+function pickSuggest(id){
+  closeSuggest();
+  var qe=$('q'); if(qe) qe.value='';
+  S.q='';
+  openProduct(id);
+}
+function closeSuggest(){
+  var box=$('sgBox');
+  if(box){ box.classList.remove('open'); box.innerHTML=''; }
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest || !e.target.closest('.searchwrap')) closeSuggest();
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeSuggest(); });
 function filterCat(c){ S.cat=c; S.view='shop'; syncShopHash(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
 
 /* ---------- 20) ตะกร้าสินค้า ---------- */
@@ -3707,6 +3824,8 @@ function adminOrders(){
         (o.status==='packing'? '<button class="btn sm ghost" onclick="tab(\'ship\')">ไปที่หน้าบันทึกการจัดส่ง</button>':'')+
         '<button class="btn sm ghost" onclick="trackByCode(\''+esc(o.code)+'\')">ดูไทม์ไลน์</button>'+
         '<button class="btn sm ghost" onclick="printSlip(\''+esc(o.code)+'\')">พิมพ์ใบส่งของ</button>'+
+        (['shipped','done'].indexOf(o.status)<0 ?
+          '<button class="btn sm ghost" onclick="openEditShipping(\''+esc(o.code)+'\')">แก้ข้อมูลจัดส่ง</button>' : '')+
         '</div></div>';
     }).join('')+'</div>';
 }
