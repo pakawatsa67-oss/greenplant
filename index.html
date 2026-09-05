@@ -183,6 +183,12 @@ section{padding:44px 0}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:20px}
 .pill{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 14px;font-size:13.5px}
 .pill.on{background:var(--forest);color:#fff;border-color:var(--forest)}
+.pill.sm{padding:5px 11px;font-size:12.5px}
+.pill.clearf{border-color:var(--clay);color:var(--clay);background:#FDF2ED}
+.pill.clearf:hover{background:var(--clay);color:#fff}
+.filterbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-10px 0 18px;padding:0 2px}
+.flabel{font-size:12.5px;color:var(--ink-2);font-weight:600}
+.fdiv{width:1px;height:18px;background:var(--line);margin:0 4px}
 select,input[type=text],input[type=email],input[type=tel],input[type=number],input[type=password],textarea{
   border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;outline:none;width:100%}
 select:focus,input:focus,textarea:focus{border-color:var(--leaf)}
@@ -630,6 +636,7 @@ var S = {
   view:'home', ready:false, busy:false,
   cart:[], compare:[], user:null,
   q:'', cat:'ทั้งหมด', sort:'ใหม่ล่าสุด', maxPrice:1500,
+  fCare:'', fLight:'', fStock:false, fSale:false,
   step:1, checkout:{name:'',phone:'',addr:'',note:'',pay:PAYMENTS[0].v,slip:null,slipName:''},
   lastOrder:null, track:null, trackCode:'', tab:'dash', editing:null,
   coupon:null, accept:false, cookieDone:false, legalTab:'privacy', aboutTab:'about', acctTab:'dash', wish:[],
@@ -1521,7 +1528,7 @@ async function submitNewPassword(){
 /* ตรวจ hash ที่ Supabase ส่งกลับมาหลังกดลิงก์ในอีเมล */
 function handleAuthHash(){
   var h = location.hash || '';
-  if(h.indexOf('error') > -1 && h.indexOf('=') > -1){
+  if(/error=|error_code=/.test(h)){
     var msg = /otp_expired/.test(h)
       ? 'ลิงก์ตั้งรหัสผ่านหมดอายุหรือถูกใช้ไปแล้ว กรุณากดลืมรหัสผ่านเพื่อขอลิงก์ใหม่'
       : 'ลิงก์ยืนยันไม่ถูกต้อง กรุณาขอลิงก์ใหม่อีกครั้ง';
@@ -1529,7 +1536,7 @@ function handleAuthHash(){
     setTimeout(function(){ toast(msg); openAuth(); }, 400);
     return true;
   }
-  if(h.indexOf('type=recovery') > -1 || h.indexOf('access_token') > -1){
+  if(/type=recovery|access_token=/.test(h)){
     setTimeout(openResetPassword, 400);
     return true;
   }
@@ -1620,7 +1627,7 @@ async function go(v){
   }catch(e){ toast(errMsg(e)); }
 }
 function onSearch(v){ S.q=v; if(S.view!=='shop') S.view='shop'; render(); }
-function filterCat(c){ S.cat=c; S.view='shop'; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function filterCat(c){ S.cat=c; S.view='shop'; syncShopHash(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
 
 /* ---------- 20) ตะกร้าสินค้า ---------- */
 function addCart(id, qty){
@@ -1689,7 +1696,11 @@ function visibleProducts(){
     var okCat = S.cat==='ทั้งหมด' || p.category===S.cat;
     var okPrice = Number(p.price)<=S.maxPrice;
     var okQ = !q || (p.name+' '+p.sci_name+' '+p.category+' '+p.sku+' '+p.description).toLowerCase().indexOf(q)>-1;
-    return okCat && okPrice && okQ;
+    var okCare = !S.fCare || p.care_level===S.fCare;
+    var okLight = !S.fLight || (p.light||'').indexOf(S.fLight)>-1;
+    var okStock = !S.fStock || p.stock>0;
+    var okSale = !S.fSale || Number(p.old_price)>0;
+    return okCat && okPrice && okQ && okCare && okLight && okStock && okSale;
   });
   if(S.sort==='ราคาต่ำ→สูง') list.sort(function(a,b){return a.price-b.price;});
   if(S.sort==='ราคาสูง→ต่ำ') list.sort(function(a,b){return b.price-a.price;});
@@ -1864,18 +1875,19 @@ function viewShop(){
       '</select></div></div>'+
 
     '<div class="toolbar">'+
-      '<button class="pill'+(S.cat==='ทั้งหมด'?' on':'')+'" onclick="S.cat=\'ทั้งหมด\';render()">ทั้งหมด</button>'+
-      CATS.map(function(c){return '<button class="pill'+(S.cat===c?' on':'')+'" onclick="S.cat=\''+c+'\';render()">'+c+'</button>';}).join('')+
+      '<button class="pill'+(S.cat==='ทั้งหมด'?' on':'')+'" onclick="setFilter(\'cat\',\'ทั้งหมด\')">ทั้งหมด</button>'+
+      CATS.map(function(c){return '<button class="pill'+(S.cat===c?' on':'')+'" onclick="setFilter(\'cat\',\''+c+'\')">'+c+'</button>';}).join('')+
       '<div style="margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13.5px">'+
         '<label for="pr">ราคาไม่เกิน <b class="mono">฿'+baht(S.maxPrice)+'</b></label>'+
         '<input id="pr" type="range" min="90" max="1500" step="10" value="'+S.maxPrice+'" style="width:150px;accent-color:var(--leaf)" oninput="S.maxPrice=+this.value;render();document.getElementById(\'pr\').focus()">'+
       '</div>'+
     '</div>'+
+    filterBar()+
 
     (list.length? '<div class="grid">'+list.map(card).join('')+'</div>'
       : '<div class="empty"><div style="width:96px;margin:0 auto">'+art('fern')+'</div>'+
         '<p>ไม่พบสินค้าที่ตรงกับเงื่อนไข ลองลบคำค้นหรือขยายช่วงราคาดูอีกครั้ง</p>'+
-        '<button class="btn ghost" onclick="S.q=\'\';S.cat=\'ทั้งหมด\';S.maxPrice=1500;document.getElementById(\'q\').value=\'\';render()">ล้างตัวกรองทั้งหมด</button></div>')+
+        '<button class="btn ghost" onclick="clearFilters()">ล้างตัวกรองทั้งหมด</button></div>')+
     '</section></div>';
 }
 
@@ -2630,18 +2642,24 @@ function couponBox(){
 window.addEventListener('hashchange', function(){
   if(_navLock) return;
   var raw = location.hash || '';
-  if(raw.indexOf('=') > -1) return;               // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
+  if(isAuthHash(raw)) return;                     // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
   var pm = raw.match(/^#\/p\/(\d+)$/);            // ลิงก์ตรงไปยังสินค้าชิ้นหนึ่ง
   if(pm){ openProduct(Number(pm[1])); return; }
+  if(raw.indexOf('#/shop?')===0){ applyShopHash(raw); go('shop'); return; }
   if(S.openPid){ S.openPid=null; $('modalRoot').innerHTML=''; }
   var v = raw.replace(/^#\/?/, '') || 'home';
   if(VIEWS.indexOf(v) < 0) v = 'home';
   if(v !== S.view) go(v);
 });
+/* แยกให้ชัดว่า hash ไหนมาจากลิงก์ยืนยันอีเมล ไม่ใช่แค่ดูว่ามีเครื่องหมายเท่ากับ */
+function isAuthHash(raw){
+  return /access_token=|refresh_token=|type=recovery|error_code=|error=/.test(raw||'');
+}
 function initialView(){
   var raw = location.hash || '';
-  if(raw.indexOf('=') > -1) return 'home';        // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
+  if(isAuthHash(raw)) return 'home';              // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
   if(/^#\/p\/\d+$/.test(raw)) return 'shop';     // ลิงก์สินค้า ให้เปิดหน้าแคตตาล็อกไว้ด้านหลัง
+  if(raw.indexOf('#/shop?')===0){ applyShopHash(raw); return 'shop'; }
   var v = raw.replace(/^#\/?/, '');
   return VIEWS.indexOf(v) > -1 ? v : 'home';
 }
@@ -2799,6 +2817,88 @@ function pickGallery(btn, url, name){
   var all = document.querySelectorAll('.galthumb');
   for(var i=0;i<all.length;i++) all[i].classList.remove('on');
   btn.classList.add('on');
+}
+
+
+/* ---------- ตัวกรองละเอียด: ระดับการดูแล แสง และสถานะสินค้า ---------- */
+var CARES  = ['ง่ายมาก','ง่าย','ปานกลาง'];
+var LIGHTS = [['รำไร','แสงรำไร'],['แดดจัด','แดดจัด'],['ทนได้ทุกแสง','ทนได้ทุกแสง']];
+
+function setFilter(key, val){
+  if(key==='cat')   S.cat   = val;
+  if(key==='care')  S.fCare = (S.fCare===val ? '' : val);
+  if(key==='light') S.fLight= (S.fLight===val ? '' : val);
+  if(key==='stock') S.fStock= !S.fStock;
+  if(key==='sale')  S.fSale = !S.fSale;
+  syncShopHash();
+  render();
+}
+function clearFilters(){
+  S.cat='ทั้งหมด'; S.fCare=''; S.fLight=''; S.fStock=false; S.fSale=false;
+  S.maxPrice=1500; S.q='';
+  var qe=$('q'); if(qe) qe.value='';
+  syncShopHash();
+  render();
+}
+function activeFilterCount(){
+  var n=0;
+  if(S.cat!=='ทั้งหมด') n++;
+  if(S.fCare) n++;
+  if(S.fLight) n++;
+  if(S.fStock) n++;
+  if(S.fSale) n++;
+  if(S.maxPrice<1500) n++;
+  if(S.q.trim()) n++;
+  return n;
+}
+function filterBar(){
+  var n = activeFilterCount();
+  return '<div class="filterbar">'+
+    '<span class="flabel">ระดับการดูแล</span>'+
+    CARES.map(function(c){
+      return '<button class="pill sm'+(S.fCare===c?' on':'')+'" onclick="setFilter(\'care\',\''+c+'\')">'+c+'</button>';
+    }).join('')+
+    '<span class="fdiv"></span>'+
+    '<span class="flabel">แสง</span>'+
+    LIGHTS.map(function(l){
+      return '<button class="pill sm'+(S.fLight===l[1]?' on':'')+'" onclick="setFilter(\'light\',\''+l[1]+'\')">'+l[0]+'</button>';
+    }).join('')+
+    '<span class="fdiv"></span>'+
+    '<button class="pill sm'+(S.fStock?' on':'')+'" onclick="setFilter(\'stock\')">เฉพาะที่มีของ</button>'+
+    '<button class="pill sm'+(S.fSale?' on':'')+'" onclick="setFilter(\'sale\')">กำลังลดราคา</button>'+
+    (n? '<button class="pill sm clearf" onclick="clearFilters()">ล้างตัวกรอง ('+n+')</button>':'')+
+    '</div>';
+}
+
+/* เก็บตัวกรองไว้ใน URL เพื่อให้แชร์ลิงก์และกดย้อนกลับได้ */
+function syncShopHash(){
+  if(S.view !== 'shop') return;
+  var q = [];
+  if(S.cat!=='ทั้งหมด') q.push('cat='+encodeURIComponent(S.cat));
+  if(S.fCare)  q.push('care='+encodeURIComponent(S.fCare));
+  if(S.fLight) q.push('light='+encodeURIComponent(S.fLight));
+  if(S.fStock) q.push('stock=1');
+  if(S.fSale)  q.push('sale=1');
+  var h = '#/shop' + (q.length ? '?'+q.join('&') : '');
+  if(location.hash !== h){
+    _navLock = true;
+    location.hash = h;
+    setTimeout(function(){ _navLock=false; }, 0);
+  }
+}
+function applyShopHash(raw){
+  var qs = raw.split('?')[1];
+  S.cat='ทั้งหมด'; S.fCare=''; S.fLight=''; S.fStock=false; S.fSale=false;
+  if(!qs) return;
+  qs.split('&').forEach(function(pair){
+    var kv = pair.split('=');
+    var k = kv[0], v = decodeURIComponent(kv[1]||'');
+    if(k==='cat')   S.cat = v;
+    if(k==='care')  S.fCare = v;
+    if(k==='light') S.fLight = v;
+    if(k==='stock') S.fStock = true;
+    if(k==='sale')  S.fSale = true;
+  });
 }
 /* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
