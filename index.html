@@ -1250,6 +1250,7 @@ async function saveCoupon(){
     min_subtotal: Number($('cp_min').value),
     max_discount: Number($('cp_max').value),
     usage_limit: Number($('cp_limit').value),
+    per_user_limit: Math.max(0, Number($('cp_puser') ? $('cp_puser').value : 0) || 0),
     is_active: $('cp_active').checked
   };
   if(!row.code){ toast('กรอกรหัสคูปอง'); return; }
@@ -1313,7 +1314,8 @@ async function placeBid(aid){
     if(r.error) throw r.error;
     await loadAuctions();
     await loadBids(aid);
-    toast('เสนอราคา ฿'+baht(amt)+' สำเร็จ คุณเป็นผู้เสนอราคาสูงสุดขณะนี้');
+    toast('เสนอราคา ฿'+baht(amt)+' สำเร็จ คุณเป็นผู้เสนอราคาสูงสุดขณะนี้' +
+          (r.data && r.data.extended ? ' · ระบบต่อเวลาประมูลออกไปเพื่อให้ผู้อื่นได้สู้ราคาต่อ' : ''));
     openAuction(aid);
     render();
   }catch(e){ toast(errMsg(e)); }
@@ -1338,7 +1340,7 @@ async function closeAuction(aid){
 function newAuction(){
   var d=new Date(Date.now()+3*86400000);
   S.editAuction = {id:0, title:'', sci_name:'', description:'', art_key:'monstera',
-    start_price:1000, min_increment:50, ends_at:d.toISOString().slice(0,16)};
+    start_price:1000, min_increment:50, extend_seconds:120, ends_at:d.toISOString().slice(0,16)};
   render();
 }
 function editAuction(id){
@@ -1353,6 +1355,7 @@ async function saveAuction(){
     title:$('au_title').value.trim(), sci_name:$('au_sci').value.trim(),
     description:$('au_desc').value.trim(), art_key:$('au_art').value,
     start_price:Number($('au_start').value), min_increment:Number($('au_inc').value),
+    extend_seconds:Math.max(0, Number($('au_ext') ? $('au_ext').value : 120) || 0),
     ends_at:new Date($('au_end').value).toISOString()
   };
   if(!row.title){ toast('กรอกชื่อรายการประมูล'); return; }
@@ -3043,7 +3046,9 @@ function viewAuction(){
 
     '<div class="note" style="margin-bottom:18px"><b>กติกาการประมูล</b> · '+
     'ต้องเป็นสมาชิกที่เข้าสู่ระบบจึงจะเสนอราคาได้ · เสนอราคาแล้วยกเลิกไม่ได้ · '+
-    'ผู้ที่เป็นผู้เสนอสูงสุดอยู่แล้วไม่ต้องเสนอซ้ำ · ประวัติการเสนอราคาเปิดเผยต่อสาธารณะเพื่อความโปร่งใส</div>'+
+    'ผู้ที่เป็นผู้เสนอสูงสุดอยู่แล้วไม่ต้องเสนอซ้ำ · ประวัติการเสนอราคาเปิดเผยต่อสาธารณะเพื่อความโปร่งใส<br>'+
+    '<b>การต่อเวลาอัตโนมัติ</b> · หากมีผู้เสนอราคาในช่วง 2 นาทีสุดท้าย ระบบจะต่อเวลาออกไปอีก 2 นาที '+
+    'เพื่อไม่ให้ใครชนะด้วยการรอยิงราคาวินาทีสุดท้าย</div>'+
 
     (open.length? '<div class="grid">'+open.map(auctionCard).join('')+'</div>'
       : '<div class="empty"><div style="width:90px;margin:0 auto">'+art('cactus')+'</div>'+
@@ -3121,7 +3126,10 @@ function drawAuction(a, bids){
                 '<div style="display:flex;gap:9px">'+
                 '<input id="bidAmt" type="number" min="'+minNext+'" step="'+a.min_increment+'" value="'+minNext+'" style="flex:1">'+
                 '<button class="btn leaf" onclick="placeBid('+a.id+')" '+(S.busy?'disabled':'')+'>เสนอราคา</button></div>'+
-                '<div class="sku" style="margin-top:6px">การเสนอราคาถือเป็นข้อผูกพัน ยกเลิกไม่ได้</div></div>')))+
+                '<div class="sku" style="margin-top:6px">การเสนอราคาถือเป็นข้อผูกพัน ยกเลิกไม่ได้'+
+                (Number(a.extend_seconds)>0 && cd.urgent ?
+                  ' · เหลือเวลาน้อย หากเสนอตอนนี้ระบบจะต่อเวลาให้อีก '+Math.round(a.extend_seconds/60)+' นาที' : '')+
+                '</div></div>')))+
       '</div>'+
     '</div>'+
     '<div style="margin-top:20px"><h3 style="font-family:var(--display);font-size:20px;margin:0 0 8px;font-weight:600">ประวัติการเสนอราคา</h3>'+
@@ -3415,8 +3423,11 @@ function adminPromo(){
       '<input id="cp_max" type="number" min="0" value="'+(e.max_discount||0)+'"></div></div>'+
       '<div class="row2"><div class="field"><label class="f" for="cp_min">ยอดซื้อขั้นต่ำ</label>'+
       '<input id="cp_min" type="number" min="0" value="'+(e.min_subtotal||0)+'"></div>'+
-      '<div class="field"><label class="f" for="cp_limit">จำกัดจำนวนครั้ง (0 = ไม่จำกัด)</label>'+
+      '<div class="field"><label class="f" for="cp_limit">จำกัดจำนวนครั้งรวมทั้งร้าน (0 = ไม่จำกัด)</label>'+
       '<input id="cp_limit" type="number" min="0" value="'+(e.usage_limit||0)+'"></div></div>'+
+      '<div class="field"><label class="f" for="cp_puser">จำกัดต่อลูกค้าหนึ่งคน (0 = ไม่จำกัด)</label>'+
+      '<input id="cp_puser" type="number" min="0" value="'+(e.per_user_limit||0)+'">'+
+      '<div class="sku" style="margin-top:5px">ใส่ 1 เพื่อให้ลูกค้าแต่ละคนใช้ได้ครั้งเดียว เหมาะกับคูปองต้อนรับลูกค้าใหม่</div></div>'+
       '<label class="payopt" style="margin-bottom:14px"><input id="cp_active" type="checkbox" '+(e.is_active!==false?'checked':'')+'>'+
       '<span><b>เปิดใช้งานคูปองนี้</b><small>ถ้าปิด ลูกค้าจะใช้รหัสนี้ไม่ได้ทันที</small></span></label>'+
       '<div style="display:flex;gap:10px"><button class="btn" onclick="saveCoupon()" '+(S.busy?'disabled':'')+'>บันทึกคูปอง</button>'+
@@ -3435,7 +3446,8 @@ function adminPromo(){
       '<td>'+(c.discount_type==='freeship'?'-':(c.discount_type==='percent'? c.discount_value+'%':'฿'+baht(c.discount_value)))+
         (Number(c.max_discount)>0?'<div class="sku">สูงสุด ฿'+baht(c.max_discount)+'</div>':'')+'</td>'+
       '<td>'+(Number(c.min_subtotal)>0?'฿'+baht(c.min_subtotal):'ไม่มี')+'</td>'+
-      '<td>'+c.used_count+(Number(c.usage_limit)>0?' / '+c.usage_limit:'')+'</td>'+
+      '<td>'+c.used_count+(Number(c.usage_limit)>0?' / '+c.usage_limit:'')+
+        (Number(c.per_user_limit)>0?'<div class="sku">คนละ '+c.per_user_limit+' ครั้ง</div>':'')+'</td>'+
       '<td>'+(c.is_active?'<span class="status s-shipped">เปิด</span>':'<span class="status s-reject">ปิด</span>')+'</td>'+
       '<td style="white-space:nowrap"><button class="btn sm ghost" onclick="S.editCoupon=DB.coupons.find(function(x){return x.id==='+c.id+';});render()">แก้ไข</button> '+
       '<button class="btn sm danger" onclick="delCoupon('+c.id+')">ลบ</button></td></tr>';
@@ -3466,6 +3478,9 @@ function adminAuction(){
       '<input id="au_inc" type="number" min="1" value="'+(e.min_increment||50)+'"></div></div>'+
       '<div class="row2"><div class="field"><label class="f" for="au_end">ปิดประมูลเมื่อ</label>'+
       '<input id="au_end" type="datetime-local" value="'+esc(e.ends_at||'')+'"></div>'+
+      '<div class="field"><label class="f" for="au_ext">ต่อเวลาอัตโนมัติ (วินาที · 0 = ไม่ต่อ)</label>'+
+      '<input id="au_ext" type="number" min="0" step="30" value="'+(e.extend_seconds!=null?e.extend_seconds:120)+'"></div></div>'+
+      '<div class="row2">'+
       '<div class="field"><label class="f" for="au_art">ภาพประกอบ</label><select id="au_art" onchange="previewArt(this.value)">'+
       ART_KEYS.map(function(a){return '<option'+(e.art_key===a?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div></div>'+
       '<div style="display:flex;gap:10px"><button class="btn" onclick="saveAuction()" '+(S.busy?'disabled':'')+'>บันทึก</button>'+
