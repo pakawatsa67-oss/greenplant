@@ -1373,6 +1373,54 @@ async function joinWaitlist(pid){
   }catch(e){ toast(errMsg(e)); }
   finally{ setBusy(false); unlock('wl'+pid); }
 }
+function openWaitlistDetail(pid, name){
+  var rows = (DB.waitlist||[]).filter(function(w){ return w.product_id===pid && !w.notified; });
+  var emails = rows.map(function(w){ return w.email; }).join(', ');
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
+    '<div class="modal narrow" role="dialog" aria-modal="true">'+
+    '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
+    '<div class="eyebrow">Waitlist</div>'+
+    '<h2 style="font-family:var(--display);font-size:22px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
+      'ผู้รอสินค้า “'+esc(name)+'” ('+rows.length+' ราย)</h2>'+
+    '<p style="color:var(--ink-2);font-size:13.5px;margin:0 0 12px">'+
+    'คัดลอกอีเมลไปส่งแจ้งเตือน แล้วกดทำเครื่องหมายว่าติดต่อแล้ว เพื่อไม่ให้ตัวเลขค้าง</p>'+
+    (rows.length
+      ? '<div class="tblwrap" style="max-height:44vh;overflow:auto"><table><tr><th>อีเมล</th><th>ลงชื่อเมื่อ</th></tr>'+
+        rows.map(function(w){
+          return '<tr><td>'+esc(w.email)+'</td><td class="mono" style="font-size:12.5px">'+esc(thaiDate(w.created_at))+'</td></tr>';
+        }).join('')+'</table></div>'+
+        '<div class="field" style="margin-top:12px"><label class="f" for="wlEmails">อีเมลทั้งหมด (คัดลอกไปวางในช่องผู้รับ)</label>'+
+        '<textarea id="wlEmails" rows="2" readonly style="font-size:13px">'+esc(emails)+'</textarea></div>'
+      : '<p style="color:var(--ink-2);font-size:14px">ไม่มีรายชื่อที่ยังรออยู่</p>')+
+    '<div style="display:flex;gap:10px;margin-top:6px">'+
+      '<button class="btn ghost" onclick="closeModal()">ปิด</button>'+
+      (rows.length? '<button class="btn ghost" onclick="copyWaitlistEmails()">คัดลอกอีเมล</button>'+
+        '<button class="btn" onclick="markWaitlistDone('+pid+')">ติดต่อแล้ว</button>' : '')+
+    '</div></div></div>';
+}
+function copyWaitlistEmails(){
+  var el = $('wlEmails');
+  if(!el) return;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(el.value).then(function(){ toast('คัดลอกอีเมลทั้งหมดแล้ว'); },
+                                                 function(){ el.select(); });
+  } else { el.select(); toast('กด Ctrl+C เพื่อคัดลอก'); }
+}
+async function markWaitlistDone(pid){
+  if(locked('wlmark'+pid)) return;
+  lock('wlmark'+pid);
+  setBusy(true);
+  try{
+    var r = await sb.rpc('mark_waitlist_notified', {p_product:pid});
+    if(r.error) throw r.error;
+    closeModal();
+    await loadAdmin();
+    toast(r.data.message);
+    render();
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); unlock('wlmark'+pid); }
+}
+
 async function loadWaitlist(){
   if(!isAdmin()) return;
   var r = await sb.from('waitlist').select('*, products(name)').order('created_at', {ascending:false});
@@ -3952,14 +4000,19 @@ function adminDash(){
       (DB.waitlist||[]).forEach(function(w){
         if(w.notified) return;
         var k = w.products ? w.products.name : ('สินค้ารหัส '+w.product_id);
-        g[k] = (g[k]||0) + 1;
+        if(!g[k]) g[k] = {n:0, id:w.product_id};
+        g[k].n++;
       });
-      var keys = Object.keys(g).sort(function(a,b){ return g[b]-g[a]; });
+      var keys = Object.keys(g).sort(function(a,b){ return g[b].n - g[a].n; });
       if(!keys.length) return '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีลูกค้าลงชื่อรอสินค้า</p>';
       return '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 10px">'+
         'ใช้ตัดสินใจว่าควรสั่งสินค้ารายการไหนเข้าร้านก่อน</p>'+
         keys.map(function(k){
-          return '<div class="sum"><span>'+esc(k)+'</span><b style="color:var(--clay)">'+g[k]+' คนรอ</b></div>';
+          return '<div class="sum"><span>'+esc(k)+'</span>'+
+            '<span style="display:flex;align-items:center;gap:8px">'+
+            '<b style="color:var(--clay)">'+g[k].n+' คนรอ</b>'+
+            '<button class="btn sm ghost" onclick="openWaitlistDetail('+g[k].id+', \''+esc(k.replace(/'/g,''))+'\')">ดูรายชื่อ</button>'+
+            '</span></div>';
         }).join('');
     })()+
     '</div>'+
