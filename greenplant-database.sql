@@ -12,11 +12,14 @@
 --  หมายเหตุ: รันซ้ำได้โดยไม่ทำให้ข้อมูลเดิมเสียหาย
 --
 --  สิ่งที่ติดตั้ง
---    ตาราง 13 ตาราง   profiles, products, orders, order_items, order_logs,
+--    ตาราง 16 ตาราง   profiles, products, orders, order_items, order_logs,
 --                     reviews, messages, coupons, newsletter, auctions,
---                     bids, wishlist, audit_logs
---    มุมมอง 1 มุมมอง   product_ratings (คะแนนรีวิวเฉลี่ยรายสินค้า)
---    ฟังก์ชัน 20 ตัว   สั่งซื้อ ติดตาม ประมูล คูปอง และสิทธิตาม PDPA
+--                     bids, wishlist, audit_logs, settings, waitlist
+--    มุมมอง 3 มุมมอง   product_ratings คะแนนรีวิวเฉลี่ยรายสินค้า
+--                     best_sellers    ยอดขายรวมรายสินค้า
+--                     waitlist_summary จำนวนผู้รอสินค้าเข้า
+--    ฟังก์ชัน 25 ตัว   สั่งซื้อ ติดตาม ประมูล คูปอง รายชื่อรอสินค้า
+--                     และสิทธิของเจ้าของข้อมูลตาม PDPA
 --    ที่เก็บไฟล์ 2 ถัง  product-images (สาธารณะ) · payment-slips (ส่วนตัว)
 --
 --  ข้อควรทราบ
@@ -1764,3 +1767,212 @@ grant execute on function public.coupon_used_by(text, uuid) to authenticated;
 
 -- ตั้งค่าตัวอย่าง: คูปองลูกค้าใหม่ให้ใช้ได้คนละครั้งเดียว
 update public.coupons set per_user_limit = 1 where code = 'NEWPLANT';
+
+
+-- ==================================================================
+--  ส่วนที่ 12 ตั้งค่าหน้าร้านจากระบบหลังร้าน
+-- ==================================================================
+
+create table if not exists public.settings (
+  key        text primary key,
+  value      text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+alter table public.settings enable row level security;
+
+-- ทุกคนอ่านได้ เพราะเป็นค่าที่ใช้แสดงผลหน้าร้าน แต่แก้ได้เฉพาะผู้ดูแล
+drop policy if exists settings_select on public.settings;
+create policy settings_select on public.settings for select using (true);
+
+drop policy if exists settings_write on public.settings;
+create policy settings_write on public.settings for all
+  using (public.is_admin()) with check (public.is_admin());
+
+insert into public.settings (key, value) values ('hero_image', '')
+on conflict (key) do nothing;
+
+select * from public.settings;
+
+
+-- ==================================================================
+--  ส่วนที่ 13 สินค้าขายดีจากยอดขายจริง
+-- ==================================================================
+
+create or replace view public.best_sellers as
+  select i.product_id,
+         sum(i.qty)::int            as sold_qty,
+         count(distinct o.id)::int  as order_count,
+         sum(i.unit_price * i.qty)  as revenue
+    from public.order_items i
+    join public.orders o on o.id = i.order_id
+   where o.status <> 'reject'
+     and i.product_id is not null
+   group by i.product_id;
+
+comment on view public.best_sellers is
+  'ยอดขายรวมรายสินค้า ใช้จัดอันดับสินค้าขายดี ไม่มีข้อมูลส่วนบุคคลของผู้ซื้อ';
+
+grant select on public.best_sellers to anon, authenticated;
+
+-- ตรวจผล
+select b.product_id, p.name, b.sold_qty, b.order_count, b.revenue
+  from public.best_sellers b
+  join public.products p on p.id = b.product_id
+ order by b.sold_qty desc
+ limit 10;
+
+
+-- ==================================================================
+--  ส่วนที่ 14 ยกเลิกรับข่าวสาร (ถอนความยินยอม)
+-- ==================================================================
+
+create or replace function public.unsubscribe_newsletter(p_email text)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare v_n integer;
+begin
+  if coalesce(trim(p_email),'') = '' then
+    raise exception 'กรุณากรอกอีเมลที่ต้องการยกเลิก';
+  end if;
+
+  delete from public.newsletter
+   where lower(email) = lower(trim(p_email));
+  get diagnostics v_n = row_count;
+
+  -- ตอบข้อความเดียวกันไม่ว่าจะพบอีเมลนั้นหรือไม่
+  -- เพื่อไม่ให้ผู้อื่นใช้ช่องทางนี้ตรวจสอบว่าอีเมลใดอยู่ในระบบ
+  return jsonb_build_object(
+    'done', true,
+    'message', 'หากอีเมลนี้อยู่ในรายชื่อรับข่าวสาร ระบบได้นำออกเรียบร้อยแล้ว'
+  );
+end;
+$$;
+
+grant execute on function public.unsubscribe_newsletter(text) to anon, authenticated;
+
+-- ตรวจผล
+select count(*) as จำนวนผู้รับข่าวสาร from public.newsletter;
+
+
+-- ==================================================================
+--  ส่วนที่ 15 รายชื่อรอสินค้าเข้า
+-- ==================================================================
+
+create table if not exists public.waitlist (
+  id         bigint generated always as identity primary key,
+  product_id bigint not null references public.products(id) on delete cascade,
+  email      text   not null,
+  user_id    uuid   references public.profiles(id) on delete set null,
+  notified   boolean not null default false,
+  created_at timestamptz not null default now(),
+  unique (product_id, email)
+);
+create index if not exists waitlist_product_idx on public.waitlist(product_id);
+
+comment on table public.waitlist is
+  'รายชื่อผู้ที่ขอให้แจ้งเมื่อสินค้ากลับมามีของ ใช้วางแผนสั่งสินค้าเข้าร้าน';
+
+alter table public.waitlist enable row level security;
+
+-- ใครก็ลงชื่อได้ แต่รายชื่อทั้งหมดอ่านได้เฉพาะผู้ดูแล
+drop policy if exists waitlist_insert on public.waitlist;
+create policy waitlist_insert on public.waitlist for insert with check (true);
+
+drop policy if exists waitlist_select on public.waitlist;
+create policy waitlist_select on public.waitlist
+  for select using (public.is_admin() or (user_id is not null and user_id = auth.uid()));
+
+drop policy if exists waitlist_delete on public.waitlist;
+create policy waitlist_delete on public.waitlist
+  for delete using (public.is_admin() or (user_id is not null and user_id = auth.uid()));
+
+-- ลงชื่อรอสินค้า (รับได้ทั้งผู้เยี่ยมชมและสมาชิก)
+create or replace function public.join_waitlist(p_product bigint, p_email text)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare v_p public.products%rowtype;
+begin
+  if coalesce(trim(p_email),'') = '' or position('@' in p_email) = 0 then
+    raise exception 'กรุณากรอกอีเมลให้ถูกต้อง';
+  end if;
+
+  select * into v_p from public.products where id = p_product;
+  if not found then raise exception 'ไม่พบสินค้านี้'; end if;
+  if v_p.stock > 0 then
+    raise exception 'สินค้านี้มีของพร้อมส่งแล้ว สั่งซื้อได้ทันที';
+  end if;
+
+  insert into public.waitlist (product_id, email, user_id)
+  values (p_product, lower(trim(p_email)), auth.uid())
+  on conflict (product_id, email) do nothing;
+
+  return jsonb_build_object('done', true,
+    'message', 'บันทึกรายชื่อแล้ว ร้านจะติดต่อกลับทางอีเมลทันทีที่ “' || v_p.name || '” กลับมามีของ');
+end;
+$$;
+
+-- สรุปจำนวนผู้รอรายสินค้า ให้ผู้ดูแลใช้วางแผนสั่งของ
+create or replace view public.waitlist_summary as
+  select w.product_id,
+         count(*)::int              as waiting,
+         min(w.created_at)          as first_request,
+         max(w.created_at)          as last_request
+    from public.waitlist w
+   where w.notified = false
+   group by w.product_id;
+
+grant select on public.waitlist_summary to authenticated;
+grant execute on function public.join_waitlist(bigint, text) to anon, authenticated;
+
+select 'ติดตั้งเรียบร้อย' as สถานะ;
+
+
+-- ==================================================================
+--  ส่วนที่ 16 ปิดงานรายชื่อรอสินค้า
+-- ==================================================================
+
+drop policy if exists waitlist_update on public.waitlist;
+create policy waitlist_update on public.waitlist
+  for update using (public.is_admin()) with check (public.is_admin());
+
+-- ทำเครื่องหมายว่าติดต่อผู้รอสินค้าชิ้นนี้ครบแล้ว
+create or replace function public.mark_waitlist_notified(p_product bigint)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare v_n integer; v_name text;
+begin
+  if not public.is_admin() then
+    raise exception 'เฉพาะผู้ดูแลร้านเท่านั้น';
+  end if;
+
+  select name into v_name from public.products where id = p_product;
+
+  update public.waitlist
+     set notified = true
+   where product_id = p_product and notified = false;
+  get diagnostics v_n = row_count;
+
+  if v_n > 0 then
+    insert into public.audit_logs (actor_id, actor_name, action, target, detail)
+    select auth.uid(),
+           coalesce(nullif(full_name,''), email),
+           'ปิดงานรายชื่อรอสินค้า',
+           coalesce(v_name, 'สินค้ารหัส ' || p_product),
+           'ทำเครื่องหมายว่าติดต่อแล้ว ' || v_n || ' ราย'
+      from public.profiles where id = auth.uid();
+  end if;
+
+  return jsonb_build_object('done', true, 'count', v_n,
+    'message', case when v_n > 0
+                    then 'ทำเครื่องหมายว่าติดต่อแล้ว ' || v_n || ' ราย'
+                    else 'ไม่มีรายชื่อที่ยังรออยู่' end);
+end;
+$$;
+
+grant execute on function public.mark_waitlist_notified(bigint) to authenticated;
+
+select 'ติดตั้งเรียบร้อย' as สถานะ;
