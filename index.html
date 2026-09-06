@@ -353,6 +353,18 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .note{background:#F3F9F4;border:1px solid #CBE3D2;border-radius:11px;padding:12px 14px;font-size:13.5px;color:#2C6142}
 .note.warn{background:#FDF6E3;border-color:#EBD9A6;color:#7A5F11}
 .feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.catcard{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;text-align:left;padding:0;transition:.2s;cursor:pointer}
+.catcard:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:#BFD3C2}
+.catimg{display:grid;place-items:center;background:linear-gradient(170deg,#EDF3EC,#E1EBDF);
+  aspect-ratio:4/3;overflow:hidden;width:100%}
+.catimg svg{width:64%;height:64%}
+.catimg img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+.catcard:hover .catimg img{transform:scale(1.06)}
+.cattext{display:grid;gap:2px;padding:14px 16px 16px}
+.cattext b{font-size:16px;font-weight:600;color:var(--ink)}
+.cattext small{font-size:13px;color:var(--ink-2)}
 .feat div{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
 .feat b{display:block;font-family:var(--display);font-size:17px;margin:10px 0 4px;font-weight:600;line-height:1.5}
 .feat p{margin:0;font-size:13.5px;color:var(--ink-2)}
@@ -1942,12 +1954,7 @@ function viewHome(){
     '<section style="padding-bottom:0">'+ promoBanner() +'</section>'+
     '<section style="padding-top:14px"><div class="sechead"><div><div class="eyebrow">หมวดหมู่สินค้า</div>'+
       '<h2>เลือกตามสิ่งที่คุณกำลังหา</h2></div></div>'+
-      '<div class="feat">'+CATS.map(function(c){
-        var n=DB.products.filter(function(p){return p.category===c && p.is_active;}).length;
-        var icon={'ไม้ฟอกอากาศ':'monstera','ไม้อวบน้ำ':'cactus','กระถาง':'pot','ดินและวัสดุปลูก':'soil','อุปกรณ์':'tools'}[c];
-        return '<div style="cursor:pointer" onclick="filterCat(\''+c+'\')"><div style="width:84px;margin:-6px 0 -4px">'+art(icon)+'</div>'+
-        '<b>'+c+'</b><p>'+n+' รายการ · ดูทั้งหมด →</p></div>';
-      }).join('')+'</div></section>'+
+      '<div class="cats">'+CATS.map(catCard).join('')+'</div></section>'+
 
     '<section style="padding-top:8px"><div class="sechead"><div><div class="eyebrow">ขายดีประจำเดือน</div>'+
       '<h2>ต้นที่ลูกค้าเลือกซื้อบ่อยที่สุด</h2>'+
@@ -3070,6 +3077,21 @@ function heroVisual(){
   if(!url) return art('monstera');
   return '<img src="'+esc(url)+'" alt="ต้นไม้จากโรงเรือนของร้าน GreenPlant" class="heroimg" '+
          'onerror="this.parentNode.innerHTML=\''+"''"+'\'">';
+}
+
+/* ---------- การ์ดหมวดหมู่ ใช้รูปสินค้าจริงในหมวดนั้นเป็นภาพประกอบ ---------- */
+var CAT_ART = {'ไม้ฟอกอากาศ':'monstera','ไม้อวบน้ำ':'cactus','กระถาง':'pot','ดินและวัสดุปลูก':'soil','อุปกรณ์':'tools'};
+function catCard(c){
+  var inCat = DB.products.filter(function(p){ return p.category===c && p.is_active; });
+  var photo = null;
+  for(var i=0;i<inCat.length;i++){ if(inCat[i].image_url){ photo = inCat[i].image_url; break; } }
+  var visual = photo
+    ? '<img src="'+esc(photo)+'" alt="สินค้าหมวด'+esc(c)+'" loading="lazy">'
+    : art(CAT_ART[c]);
+  return '<button class="catcard" onclick="filterCat(\''+c+'\')" aria-label="ดูสินค้าหมวด'+esc(c)+'">'+
+    '<span class="catimg'+(photo?' photo':'')+'">'+visual+'</span>'+
+    '<span class="cattext"><b>'+esc(c)+'</b>'+
+    '<small>'+inCat.length+' รายการ · ดูทั้งหมด →</small></span></button>';
 }/* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
    ========================================================= */
@@ -3627,7 +3649,10 @@ function viewAbout(){
     '<button class="btn sm ghost" style="margin-left:6px" onclick="openContact()">ถามเราโดยตรง</button></div></div>';
   } else {
     body='<div class="grid">'+WORKS.map(function(w){
-      return '<article class="pcard"><div class="thumb"><div class="thumbimg">'+art(w[1])+'</div></div>'+
+      // ใช้รูปสินค้าจริงที่ใช้ภาพวาดแบบเดียวกัน เพื่อให้เข้าชุดกับหน้าอื่น
+      var match = DB.products.filter(function(p){ return p.art_key===w[1] && p.image_url; })[0];
+      var vis = match ? '<img src="'+esc(match.image_url)+'" alt="'+esc(w[0])+'" class="pimg" loading="lazy">' : art(w[1]);
+      return '<article class="pcard"><div class="thumb"><div class="thumbimg">'+vis+'</div></div>'+
         '<div class="pbody"><span class="sku">ผลงานการจัดวาง</span>'+
         '<span class="pname">'+esc(w[0])+'</span>'+
         '<p style="font-size:13.5px;color:var(--ink-2);margin:4px 0 0">'+esc(w[2])+'</p></div></article>';
