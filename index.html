@@ -664,7 +664,7 @@ function ppPayload(amount){
 /* ---------- 3) ข้อมูลที่โหลดมาเก็บไว้ในเครื่อง ---------- */
 var DB = { products:[], ratings:{}, reviews:{}, myOrders:[], adminOrders:[], members:[], messages:[],
            auctions:[], bids:{}, coupons:[], subscribers:[],
-           summary:null, myReviews:[], myBids:[], audit:[], best:{} };
+           summary:null, myReviews:[], myBids:[], audit:[], best:{}, allReviews:[] };
 
 /* ---------- 4) สถานะหน้าจอ ---------- */
 var S = {
@@ -1014,6 +1014,9 @@ async function loadAdmin(){
   if(!r3.error) DB.messages = r3.data;
 
   await loadPromo();
+
+  var r5 = await sb.from('reviews').select('*, products(name)').order('created_at', {ascending:false}).limit(200);
+  if(!r5.error) DB.allReviews = r5.data;
 
   var r4 = await sb.from('audit_logs').select('*').order('created_at', {ascending:false}).limit(100);
   if(!r4.error) DB.audit = r4.data;
@@ -1731,6 +1734,24 @@ async function doDeleteAccount(){
     go('home');
   }catch(e){ toast(errMsg(e)); }
   finally{ setBusy(false); }
+}
+
+/* ---------- 31ข) ผู้ดูแลลบรีวิวที่ไม่เหมาะสม ---------- */
+async function adminDelReview(id, name){
+  if(!confirm('ยืนยันการลบรีวิวของ "'+name+'"?\nการลบจะมีผลถาวรและคะแนนเฉลี่ยของสินค้าจะถูกคำนวณใหม่')) return;
+  if(locked('delrv'+id)) return;
+  lock('delrv'+id);
+  setBusy(true);
+  try{
+    var r = await sb.from('reviews').delete().eq('id', id);
+    if(r.error) throw r.error;
+    try{ await sb.rpc('log_action', {p_action:'ลบรีวิว', p_target:name, p_detail:'รีวิวรหัส '+id}); }catch(e0){}
+    await loadAdmin();
+    await loadCatalog();
+    toast('ลบรีวิวแล้ว คะแนนเฉลี่ยของสินค้าถูกคำนวณใหม่');
+    render();
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); unlock('delrv'+id); }
 }
 
 /* ---------- 32) ลบรีวิวของตัวเอง ---------- */
@@ -4036,6 +4057,7 @@ function adminMembers(){
 
 /* ---------- 40) รีวิวและข้อความ ---------- */
 function adminMsg(){
+  var rv = DB.allReviews || [];
   return '<div class="layout2"><div class="panel"><h3>ข้อความจากผู้ซื้อและผู้เยี่ยมชม ('+DB.messages.length+')</h3>'+
     (DB.messages.length? DB.messages.map(function(m){
       return '<div class="review" style="'+(m.is_read?'opacity:.6':'')+'"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">'+
@@ -4047,12 +4069,28 @@ function adminMsg(){
       (m.is_read?'<span class="sku">อ่านแล้ว</span>':'<button class="btn sm ghost" onclick="markRead('+m.id+')">ทำเครื่องหมายว่าอ่านแล้ว</button>')+
       '</div></div>';
     }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีข้อความใหม่</p>')+'</div>'+
-    '<div class="panel"><h3>คะแนนรีวิวรายสินค้า</h3>'+
-    (Object.keys(DB.ratings).length? DB.products.filter(function(p){return DB.ratings[p.id];}).map(function(p){
-      var r=DB.ratings[p.id];
-      return '<div class="sum"><span>'+esc(p.name)+'</span><b><span class="stars">'+starRow(r.avg)+'</span> '+r.avg+' ('+r.n+')</b></div>';
+
+    '<div class="panel"><h3>รีวิวจากลูกค้า ('+rv.length+')</h3>'+
+    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 12px">'+
+    'ทุกรีวิวมาจากผู้ที่ซื้อสินค้าจริงและได้รับของแล้ว หากพบข้อความไม่เหมาะสมหรือโฆษณาแฝง ผู้ดูแลลบได้ '+
+    'การลบจะถูกบันทึกไว้ในประวัติการทำงาน</p>'+
+    (rv.length? rv.map(function(r){
+      return '<div class="review"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">'+
+      '<b>'+esc(r.author_name)+' <span class="verified">ซื้อจริง</span></b>'+
+      '<span class="stars">'+starRow(r.stars)+'</span></div>'+
+      '<div class="sku">'+esc(r.products? r.products.name : 'สินค้าถูกลบแล้ว')+'</div>'+
+      '<div style="font-size:14px;color:var(--ink-2)">'+esc(r.body)+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px">'+
+      '<small class="mono" style="color:#9AAAA0">'+esc(thaiDate(r.created_at))+'</small>'+
+      '<button class="btn sm danger" onclick="adminDelReview('+r.id+', \''+esc(String(r.author_name).replace(/'/g,''))+'\')">ลบรีวิว</button>'+
+      '</div></div>';
     }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีรีวิวจากลูกค้า</p>')+
-    '<div class="note" style="margin-top:12px">เปิดหน้าสินค้าฝั่งหน้าร้านเพื่ออ่านข้อความรีวิวแต่ละรายการได้</div></div></div>';
+    '<h3 style="margin-top:20px">คะแนนเฉลี่ยรายสินค้า</h3>'+
+    (Object.keys(DB.ratings).length? DB.products.filter(function(p){return DB.ratings[p.id];}).map(function(p){
+      var r2=DB.ratings[p.id];
+      return '<div class="sum"><span>'+esc(p.name)+'</span><b><span class="stars">'+starRow(r2.avg)+'</span> '+r2.avg+' ('+r2.n+')</b></div>';
+    }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีคะแนนรีวิว</p>')+
+    '</div></div>';
 }
 
 /* =========================================================
