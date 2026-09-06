@@ -193,7 +193,8 @@ section{padding:44px 0}
 .cmpbtn{border:1px solid var(--line);background:var(--card);border-radius:9px;width:38px;display:grid;place-items:center;font-size:13px}
 .cmpbtn.on{background:var(--forest);color:#fff;border-color:var(--forest)}
 .stars{color:#D9A521;font-size:13px;letter-spacing:1px}
-.rate{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2)}
+.rate{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);flex-wrap:wrap}
+.sold{background:var(--leaf-soft);color:#2C6142;font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:5px}
 
 /* ---------- Filters ---------- */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:20px}
@@ -663,7 +664,7 @@ function ppPayload(amount){
 /* ---------- 3) ข้อมูลที่โหลดมาเก็บไว้ในเครื่อง ---------- */
 var DB = { products:[], ratings:{}, reviews:{}, myOrders:[], adminOrders:[], members:[], messages:[],
            auctions:[], bids:{}, coupons:[], subscribers:[],
-           summary:null, myReviews:[], myBids:[], audit:[] };
+           summary:null, myReviews:[], myBids:[], audit:[], best:{} };
 
 /* ---------- 4) สถานะหน้าจอ ---------- */
 var S = {
@@ -780,6 +781,14 @@ async function saveHeroImage(){
     render();
   }catch(e){ toast(errMsg(e)); }
   finally{ setBusy(false); }
+}
+
+/* ---------- 6ค) โหลดอันดับสินค้าขายดีจากยอดขายจริง ---------- */
+async function loadBestSellers(){
+  var r = await sb.from('best_sellers').select('*');
+  if(r.error || !r.data) return;
+  DB.best = {};
+  r.data.forEach(function(x){ DB.best[x.product_id] = Number(x.sold_qty) || 0; });
 }
 
 /* ---------- 7) โหลดรีวิวของสินค้าหนึ่งชิ้น ---------- */
@@ -899,6 +908,7 @@ async function placeOrder(){
     S.cart = []; S.step = 1; S.coupon = null; S.accept = false;
     S.checkout.slip = null; S.checkout.slipName = '';
     await loadCatalog();                 // ดึงสต็อกล่าสุดหลังตัดสินค้า
+    try{ await loadBestSellers(); }catch(e9){}
     if(S.user) await loadProfile();      // ดึงวงเงินเครดิตล่าสุด
     await trackByCode(S.lastOrder, true, c.phone);
     go('done');
@@ -1913,7 +1923,8 @@ function card(p){
       '<span class="sku">'+esc(p.category)+'</span>'+
       '<span class="pname" onclick="openProduct('+p.id+')">'+esc(p.name)+'</span>'+
       '<span class="sci">'+esc(p.sci_name)+'</span>'+
-      '<div class="rate"><span class="stars">'+starRow(r.avg)+'</span>'+(r.n?r.avg+' ('+r.n+')':'ยังไม่มีรีวิว')+'</div>'+
+      '<div class="rate"><span class="stars">'+starRow(r.avg)+'</span>'+(r.n?r.avg+' ('+r.n+')':'ยังไม่มีรีวิว')+
+        soldBadge(p)+'</div>'+
       '<div class="price">฿'+baht(p.price)+(p.old_price>0?'<s>฿'+baht(p.old_price)+'</s>':'')+'</div>'+
       (p.stock>0 ? '<div class="stockline'+(left<=3?' low':'')+'">'+
         (left>0 ? 'หยิบเพิ่มได้อีก '+left+' ชิ้น' : 'หยิบครบจำนวนที่มีในคลังแล้ว')+
@@ -1939,7 +1950,7 @@ function viewWish(){
 
 /* ---------- 24) หน้าแรก ---------- */
 function viewHome(){
-  var best = DB.products.filter(function(p){return p.is_active;}).slice(0,6);
+  var best = bestSellers(6);
   var sale = DB.products.filter(function(p){return p.is_active && p.old_price>0;});
   var promo = DB.coupons.filter(function(c){return c.is_active;})[0] || null;
   return '<div class="wrap">'+
@@ -1968,8 +1979,10 @@ function viewHome(){
       '<div class="cats">'+CATS.map(catCard).join('')+'</div></section>'+
 
     '<section style="padding-top:8px"><div class="sechead"><div><div class="eyebrow">ขายดีประจำเดือน</div>'+
-      '<h2>ต้นที่ลูกค้าเลือกซื้อบ่อยที่สุด</h2>'+
-      '<p>เลี้ยงง่าย โตไว เหมาะกับมือใหม่ที่เพิ่งเริ่มจัดมุมสีเขียวในบ้าน</p></div>'+
+      '<h2>'+(hasSales()?'ต้นที่ลูกค้าเลือกซื้อบ่อยที่สุด':'สินค้าแนะนำจากร้าน')+'</h2>'+
+      '<p>'+(hasSales()
+        ? 'จัดอันดับจากยอดสั่งซื้อจริงในระบบ ไม่นับรายการที่ถูกยกเลิก'
+        : 'เลี้ยงง่าย โตไว เหมาะกับมือใหม่ที่เพิ่งเริ่มจัดมุมสีเขียวในบ้าน')+'</p></div>'+
       '<button class="btn ghost" onclick="go(\'shop\')">ดูสินค้าทั้งหมด</button></div>'+
       '<div class="grid">'+best.map(card).join('')+'</div></section>'+
 
@@ -3103,6 +3116,26 @@ function catCard(c){
     '<span class="catimg'+(photo?' photo':'')+'">'+visual+'</span>'+
     '<span class="cattext"><b>'+esc(c)+'</b>'+
     '<small>'+inCat.length+' รายการ · ดูทั้งหมด →</small></span></button>';
+}
+
+/* ---------- จัดอันดับสินค้าขายดีจากยอดขายจริง ---------- */
+function hasSales(){
+  for(var k in DB.best){ if(DB.best[k] > 0) return true; }
+  return false;
+}
+function bestSellers(n){
+  var active = DB.products.filter(function(p){ return p.is_active; });
+  if(!hasSales()) return active.slice(0, n);       // ยังไม่มียอดขาย ใช้ลำดับในแคตตาล็อก
+  var sorted = active.slice().sort(function(a, b){
+    var qa = DB.best[a.id] || 0, qb = DB.best[b.id] || 0;
+    if(qb !== qa) return qb - qa;
+    return a.id - b.id;
+  });
+  return sorted.slice(0, n);
+}
+function soldBadge(p){
+  var q = DB.best[p.id] || 0;
+  return q > 0 ? '<span class="sold">ขายแล้ว '+q+' ชิ้น</span>' : '';
 }/* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
    ========================================================= */
@@ -4113,6 +4146,7 @@ async function boot(){
     try{ await loadAuctions(); }catch(e0){ console.warn('โหลดรายการประมูลไม่สำเร็จ', e0); }
     try{ await loadPublicCoupons(); }catch(e1){ console.warn('โหลดคูปองไม่สำเร็จ', e1); }
     try{ await loadSettings(); }catch(e4){ console.warn('โหลดค่าตั้งค่าไม่สำเร็จ', e4); }
+    try{ await loadBestSellers(); }catch(e5){ console.warn('โหลดอันดับขายดีไม่สำเร็จ', e5); }
     S.ready = true;
     if(!fromEmail) S.view = initialView();   // เปิดหน้าตามลิงก์ที่ผู้ใช้กดเข้ามา
     render();
