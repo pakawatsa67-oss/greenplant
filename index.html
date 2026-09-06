@@ -128,7 +128,9 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
 .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
 .hero .btn.ghost{border-color:rgba(255,255,255,.3);color:#fff}
 .hero .btn.ghost:hover{background:rgba(255,255,255,.1)}
-.heroart{display:grid;place-items:center}
+.heroart{display:grid;place-items:center;position:relative}
+.heroimg{width:100%;max-width:420px;aspect-ratio:1/1;object-fit:cover;border-radius:20px;display:block;
+  box-shadow:0 24px 60px -24px rgba(0,0,0,.55)}
 .herostats{display:flex;gap:26px;border-top:1px solid rgba(255,255,255,.14);padding:16px 46px;flex-wrap:wrap}
 .herostats div{font-size:13px;color:#A8C6B2}
 .herostats b{display:block;font-family:var(--display);font-size:20px;color:#fff;letter-spacing:.4px;line-height:1.5}
@@ -616,6 +618,8 @@ var SHOP = {
   accName:'นาย ภควัต ซามงค์',
   // วางไฟล์ QR สำรองไว้โฟลเดอร์เดียวกับ index.html ระบบจะไล่หาตามลำดับนี้จนกว่าจะเจอ
   qr:['promptpay-qr.png','promptpay-qr.jpg','promptpay-qr.jpeg','promptpay-qr.png.jpg','promptpay-qr.webp'],
+  // รูปแบนเนอร์หน้าแรก เว้นว่างไว้ระบบจะหยิบรูปสินค้าตัวแรกที่มีรูปจริงมาใช้แทน
+  hero:'',
   // ข้อมูลบัญชีพร้อมเพย์ของร้าน (ถอดมาจาก QR จริง) ใช้สร้าง QR แบบระบุยอดเงิน
   ppTag:'29390016A0000006770101110315004999198438177'
 };
@@ -735,6 +739,35 @@ async function loadCatalog(){
       r2.data.forEach(function(x){ DB.ratings[x.product_id] = {avg:Number(x.avg_stars), n:x.review_count}; });
     }
   }catch(e){ console.warn('โหลดคะแนนรีวิวไม่สำเร็จ', e); }
+}
+
+/* ---------- 6ข) โหลดค่าตั้งค่าหน้าร้าน ---------- */
+async function loadSettings(){
+  var r = await sb.from('settings').select('*');
+  if(r.error || !r.data) return;
+  r.data.forEach(function(x){
+    if(x.key === 'hero_image') SHOP.hero = x.value || '';
+  });
+}
+async function saveHeroImage(){
+  var raw = $('set_hero').value.trim();
+  var url = '';
+  if(raw){
+    var m = raw.match(/(\d{4,})/);
+    if(/^https?:\/\//.test(raw)) url = raw;
+    else if(m) url = 'https://images.pexels.com/photos/'+m[1]+'/pexels-photo-'+m[1]+'.jpeg?auto=compress&cs=tinysrgb&w=1200';
+    else { toast('ใส่ลิงก์รูปเต็ม หรือรหัสรูปจาก Pexels'); return; }
+  }
+  setBusy(true);
+  try{
+    var r = await sb.from('settings').update({value:url, updated_at:new Date().toISOString()}).eq('key','hero_image');
+    if(r.error) throw r.error;
+    SHOP.hero = url;
+    try{ await sb.rpc('log_action', {p_action:'เปลี่ยนรูปแบนเนอร์หน้าแรก', p_target:'hero_image', p_detail:url || 'กลับไปใช้รูปสินค้าตัวแรก'}); }catch(e0){}
+    toast(url ? 'เปลี่ยนรูปแบนเนอร์หน้าแรกแล้ว' : 'ล้างรูปแบนเนอร์แล้ว ระบบจะใช้รูปสินค้าตัวแรกแทน');
+    render();
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); }
 }
 
 /* ---------- 7) โหลดรีวิวของสินค้าหนึ่งชิ้น ---------- */
@@ -1897,7 +1930,7 @@ function viewHome(){
           '<button class="btn ghost" onclick="filterCat(\'กระถาง\')">ดูกระถางและดินปลูก</button>'+
         '</div>'+
       '</div>'+
-      '<div class="heroart">'+art('monstera')+'</div>'+
+      '<div class="heroart">'+heroVisual()+'</div>'+
     '</div>'+
     '<div class="herostats">'+
       '<div><b>'+DB.products.length+' รายการ</b>ในแคตตาล็อก</div>'+
@@ -3020,7 +3053,24 @@ function applyShopHash(raw){
     if(k==='sale')  S.fSale = true;
   });
 }
-/* =========================================================
+
+
+/* ---------- ภาพแบนเนอร์หน้าแรก ---------- */
+/* ใช้รูปที่ตั้งค่าไว้ก่อน ถ้าไม่มีให้หยิบรูปสินค้าจริงตัวแรกมาใช้
+   ถ้ายังไม่มีสินค้าไหนมีรูปจริงเลย จึงค่อยกลับไปใช้ภาพวาด */
+function heroImage(){
+  if(SHOP.hero) return SHOP.hero;
+  var withPhoto = DB.products.filter(function(p){
+    return p.is_active && p.image_url;
+  });
+  return withPhoto.length ? withPhoto[0].image_url : '';
+}
+function heroVisual(){
+  var url = heroImage();
+  if(!url) return art('monstera');
+  return '<img src="'+esc(url)+'" alt="ต้นไม้จากโรงเรือนของร้าน GreenPlant" class="heroimg" '+
+         'onerror="this.parentNode.innerHTML=\''+"''"+'\'">';
+}/* =========================================================
    บทที่ 9: หน้าจอการประมูลอิเล็กทรอนิกส์
    ========================================================= */
 
@@ -3665,6 +3715,16 @@ function adminDash(){
       '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+
     '<button class="btn sm ghost" onclick="tab(\'ord\')">จัดการคำสั่งซื้อทั้งหมด</button>'+
     '<button class="btn sm ghost" onclick="exportOrdersCSV()">ส่งออกรายงาน CSV</button></div></div>'+
+    '<div class="panel"><h3>รูปแบนเนอร์หน้าแรก</h3>'+
+    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 12px">'+
+    'ใส่ลิงก์รูปเต็ม หรือรหัสรูปจาก Pexels · เว้นว่างไว้ระบบจะใช้รูปสินค้าตัวแรกที่มีรูปจริง</p>'+
+    '<div style="display:flex;gap:9px;flex-wrap:wrap">'+
+    '<input id="set_hero" type="text" value="'+esc(SHOP.hero||'')+'" placeholder="https://… หรือ 18343648" style="flex:1;min-width:200px">'+
+    '<button class="btn" onclick="saveHeroImage()">บันทึก</button></div>'+
+    (heroImage()? '<div style="margin-top:12px;border-radius:12px;overflow:hidden;max-width:230px">'+
+      '<img src="'+esc(heroImage())+'" alt="ตัวอย่างรูปแบนเนอร์" style="width:100%;display:block">'+
+      '</div>' : '<div class="note" style="margin-top:12px">ยังไม่มีรูปจริง ระบบใช้ภาพวาดในตัวเว็บแทน</div>')+
+    '</div>'+
     '<div class="panel"><h3>สินค้าใกล้หมด</h3>'+
       (low.length? low.map(function(p){
         return '<div class="sum"><span>'+esc(p.name)+'</span><b style="color:'+(p.stock===0?'var(--danger)':'var(--warn)')+'">'+p.stock+' ชิ้น</b></div>';
@@ -4011,6 +4071,7 @@ async function boot(){
     await withRetry(loadCatalog);
     try{ await loadAuctions(); }catch(e0){ console.warn('โหลดรายการประมูลไม่สำเร็จ', e0); }
     try{ await loadPublicCoupons(); }catch(e1){ console.warn('โหลดคูปองไม่สำเร็จ', e1); }
+    try{ await loadSettings(); }catch(e4){ console.warn('โหลดค่าตั้งค่าไม่สำเร็จ', e4); }
     S.ready = true;
     if(!fromEmail) S.view = initialView();   // เปิดหน้าตามลิงก์ที่ผู้ใช้กดเข้ามา
     render();
