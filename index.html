@@ -3764,7 +3764,8 @@ function adminCatalog(){
   }
   return '<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">'+
     '<h3 style="margin:0">แคตตาล็อกสินค้า ('+DB.products.length+' รายการ)</h3>'+
-    '<button class="btn" onclick="newProduct()">+ เพิ่มสินค้าใหม่</button></div>'+
+    '<div style="display:flex;gap:8px"><button class="btn ghost" onclick="openBulkImages()">ใส่รูปทีเดียวทั้งหมด</button>'+
+    '<button class="btn" onclick="newProduct()">+ เพิ่มสินค้าใหม่</button></div></div>'+
     '<div class="tblwrap"><table><tr><th></th><th>รหัส / ชื่อสินค้า</th><th>หมวดหมู่</th><th>ราคา</th><th>คงเหลือ</th><th>สถานะ</th><th>จัดการ</th></tr>'+
     DB.products.map(function(p){
       return '<tr><td><div style="width:44px;background:#EDF3EC;border-radius:8px;padding:3px;overflow:hidden">'+pic(p)+'</div></td>'+
@@ -4096,6 +4097,97 @@ function printSlip(code){
       '<button class="btn ghost" onclick="closeModal()">ปิด</button>'+
       '<button class="btn" onclick="window.print()">พิมพ์</button></div>'+
     '</div></div>';
+}
+
+
+/* ---------- 43) ใส่รูปสินค้าทีเดียวทั้งแคตตาล็อก ---------- */
+/* คำค้นภาษาอังกฤษที่เหมาะกับสินค้าแต่ละชิ้น ใช้เปิดหน้าค้นหา Pexels ได้ทันที */
+var PX_QUERY = {
+  'GP-PL-001':'monstera deliciosa pot',
+  'GP-PL-002':'snake plant white pot',
+  'GP-PL-003':'pothos plant',
+  'GP-PL-004':'rubber plant ficus elastica',
+  'GP-PL-005':'fiddle leaf fig',
+  'GP-SC-001':'cactus small pot',
+  'GP-SC-002':'haworthia succulent',
+  'GP-PL-006':'bird nest fern',
+  'GP-PT-001':'terracotta pot empty',
+  'GP-PT-002':'white ceramic planter',
+  'GP-PT-003':'concrete planter',
+  'GP-SL-001':'potting soil',
+  'GP-SL-002':'organic compost soil',
+  'GP-SL-003':'volcanic rock pumice',
+  'GP-TL-001':'gardening tools set',
+  'GP-TL-002':'watering can'
+};
+function pxLink(sku){
+  var q = PX_QUERY[sku] || 'plant';
+  return 'https://www.pexels.com/search/' + encodeURIComponent(q) + '/';
+}
+function openBulkImages(){
+  var rows = DB.products.map(function(p){
+    var cur = (p.images && p.images.length) ? p.images.length : (p.image_url ? 1 : 0);
+    return '<tr>'+
+      '<td><div style="width:40px;height:40px;background:#EDF3EC;border-radius:8px;overflow:hidden;display:grid;place-items:center">'+pic(p)+'</div></td>'+
+      '<td><b style="font-size:13.5px">'+esc(p.name)+'</b><div class="sku">'+esc(p.sku)+
+        (cur? ' · มีรูปแล้ว '+cur+' รูป' : ' · ยังไม่มีรูป')+'</div></td>'+
+      '<td><a class="btn sm ghost" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" '+
+        'href="'+esc(pxLink(p.sku))+'">เปิดหน้าค้นหา</a></td>'+
+      '<td><input type="text" id="bulk_'+p.id+'" placeholder="วางเลขรหัสรูป คั่นด้วยคอมมา" style="min-width:200px"></td>'+
+      '</tr>';
+  }).join('');
+
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
+    '<div class="modal" role="dialog" aria-modal="true" style="max-width:840px">'+
+    '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
+    '<div class="eyebrow">Bulk Product Images</div>'+
+    '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 6px;font-weight:600;line-height:1.45">ใส่รูปสินค้าทีเดียวทั้งแคตตาล็อก</h2>'+
+    '<div class="note" style="margin-bottom:14px"><b>วิธีใช้</b> · กดปุ่มเปิดหน้าค้นหาของสินค้าแต่ละชิ้น '+
+      'จะเปิดแท็บใหม่ไปที่ Pexels พร้อมคำค้นที่เหมาะกับสินค้านั้นแล้ว · '+
+      'เลือกรูปที่ชอบ กดเข้าไป แล้วดูตัวเลขท้าย URL เช่น pexels.com/photo/xxx-<b>18343648</b>/ · '+
+      'ก๊อปเฉพาะตัวเลขมาวางในช่องขวา ใส่ได้หลายรูปโดยคั่นด้วยคอมมา · '+
+      'ช่องที่เว้นว่างไว้จะไม่ถูกแก้ไข</div>'+
+    '<div class="tblwrap" style="max-height:52vh;overflow:auto"><table>'+
+      '<tr><th></th><th>สินค้า</th><th>ค้นหารูป</th><th>รหัสรูป Pexels</th></tr>'+ rows +'</table></div>'+
+    '<div style="display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap">'+
+      '<button class="btn ghost" onclick="closeModal()">ปิด</button>'+
+      '<button class="btn" onclick="saveBulkImages()">บันทึกรูปทั้งหมด</button>'+
+      '<span class="sku">รูปจาก Pexels ใช้ฟรีเชิงพาณิชย์ ไม่ต้องอ้างอิงที่มา</span>'+
+    '</div></div></div>';
+}
+async function saveBulkImages(){
+  if(locked('bulkimg')) return;
+  var jobs = [];
+  DB.products.forEach(function(p){
+    var el = $('bulk_'+p.id);
+    if(!el) return;
+    var raw = el.value.trim();
+    if(!raw) return;
+    var ids = raw.split(/[,\s]+/).map(function(x){
+      var m = String(x).match(/(\d{4,})/); return m ? m[1] : null;
+    }).filter(Boolean).slice(0, 6);
+    if(ids.length) jobs.push({id:p.id, name:p.name, ids:ids});
+  });
+  if(!jobs.length){ toast('ยังไม่ได้กรอกรหัสรูปสักช่อง'); return; }
+
+  lock('bulkimg');
+  setBusy(true);
+  var done = 0, failed = [];
+  try{
+    for(var i=0;i<jobs.length;i++){
+      var j = jobs[i];
+      var imgs = j.ids.map(function(n){
+        return 'https://images.pexels.com/photos/'+n+'/pexels-photo-'+n+'.jpeg?auto=compress&cs=tinysrgb&w=900';
+      });
+      var r = await sb.from('products').update({images:imgs, image_url:imgs[0]}).eq('id', j.id);
+      if(r.error) failed.push(j.name); else done++;
+    }
+    await loadCatalog();
+    closeModal();
+    toast('บันทึกรูปให้สินค้า '+done+' รายการแล้ว' + (failed.length? ' · ไม่สำเร็จ: '+failed.join(', ') : ''));
+    render();
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); unlock('bulkimg'); }
 }
 
 </script>
