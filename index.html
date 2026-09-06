@@ -160,6 +160,8 @@ section{padding:44px 0}
 .pcard:hover .quickadd, .pcard:focus-within .quickadd{opacity:1;transform:none}
 .quickadd:hover{background:var(--forest-2)}
 .quickadd:disabled{background:var(--ink-2);cursor:not-allowed}
+.quickadd.notify{background:var(--clay)}
+.quickadd.notify:hover{background:#8E4022}
 @media (hover:none){
   .pacts{opacity:1;transform:none}
   .quickadd{opacity:1;transform:none}
@@ -675,7 +677,7 @@ function ppPayload(amount){
 /* ---------- 3) ข้อมูลที่โหลดมาเก็บไว้ในเครื่อง ---------- */
 var DB = { products:[], ratings:{}, reviews:{}, myOrders:[], adminOrders:[], members:[], messages:[],
            auctions:[], bids:{}, coupons:[], subscribers:[],
-           summary:null, myReviews:[], myBids:[], audit:[], best:{}, allReviews:[], recentReviews:[] };
+           summary:null, myReviews:[], myBids:[], audit:[], best:{}, allReviews:[], recentReviews:[], waitlist:[] };
 
 /* ---------- 4) สถานะหน้าจอ ---------- */
 var S = {
@@ -1034,6 +1036,7 @@ async function loadAdmin(){
   if(!r3.error) DB.messages = r3.data;
 
   await loadPromo();
+  try{ await loadWaitlist(); }catch(e0){}
 
   var r5 = await sb.from('reviews').select('*, products(name)').order('created_at', {ascending:false}).limit(200);
   if(!r5.error) DB.allReviews = r5.data;
@@ -1335,6 +1338,45 @@ async function doUnsubscribe(){
     toast(r.data.message);
   }catch(e){ toast(errMsg(e)); }
   finally{ setBusy(false); unlock('unsub'); }
+}
+
+/* ---------- 20ค) ลงชื่อรอสินค้าเข้า ---------- */
+function openWaitlist(pid){
+  var p = P(pid); if(!p) return;
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
+    '<div class="modal narrow" role="dialog" aria-modal="true">'+
+    '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
+    '<div class="eyebrow">Back in stock</div>'+
+    '<h2 style="font-family:var(--display);font-size:23px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
+      'แจ้งเตือนเมื่อ “'+esc(p.name)+'” กลับมามีของ</h2>'+
+    '<p style="color:var(--ink-2);font-size:14px;margin:0 0 14px">'+
+    'ทิ้งอีเมลไว้ ร้านจะติดต่อกลับทันทีที่ของเข้า ใช้อีเมลนี้เพื่อการแจ้งเตือนสินค้าชิ้นนี้เท่านั้น '+
+    'ไม่ได้นำไปใช้ส่งโฆษณา</p>'+
+    '<div class="field"><label class="f" for="wlEmail">อีเมลติดต่อกลับ</label>'+
+    '<input id="wlEmail" type="email" value="'+(S.user?esc(S.user.email):'')+'" placeholder="you@mail.com" '+
+    'onkeydown="if(event.key===\'Enter\')joinWaitlist('+pid+')"></div>'+
+    '<div style="display:flex;gap:10px"><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>'+
+    '<button class="btn" onclick="joinWaitlist('+pid+')">แจ้งเตือนฉันด้วย</button></div></div></div>';
+  setTimeout(function(){ var f=$('wlEmail'); if(f) f.focus(); }, 60);
+}
+async function joinWaitlist(pid){
+  var email = $('wlEmail').value.trim();
+  if(!email || email.indexOf('@')<0){ toast('กรอกอีเมลให้ถูกต้อง'); return; }
+  if(locked('wl'+pid)) return;
+  lock('wl'+pid);
+  setBusy(true);
+  try{
+    var r = await sb.rpc('join_waitlist', {p_product:pid, p_email:email});
+    if(r.error) throw r.error;
+    closeModal();
+    toast(r.data.message);
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); unlock('wl'+pid); }
+}
+async function loadWaitlist(){
+  if(!isAdmin()) return;
+  var r = await sb.from('waitlist').select('*, products(name)').order('created_at', {ascending:false});
+  if(!r.error && r.data) DB.waitlist = r.data;
 }
 
 /* ---------- 21) โหลดคูปองที่เปิดใช้งาน (ลูกค้าทุกคนเห็นได้) ---------- */
@@ -1989,8 +2031,10 @@ function card(p){
         '<button class="act" title="ดูอย่างเร็ว" aria-label="ดูอย่างเร็ว" onclick="openProduct('+p.id+')">⤢</button>'+
         '<button class="act'+(onCmp?' on':'')+'" title="เปรียบเทียบสินค้า" aria-label="เปรียบเทียบสินค้า" onclick="toggleCompare('+p.id+')">⇄</button>'+
       '</div>'+
-      '<button class="quickadd" onclick="addCart('+p.id+')" '+(left<=0?'disabled':'')+'>'+
-        (p.stock<=0 ? 'สินค้าหมด' : (left<=0 ? 'หยิบครบจำนวนที่มีแล้ว' : 'หยิบใส่ตะกร้า'))+'</button>'+
+      (p.stock<=0
+        ? '<button class="quickadd notify" onclick="openWaitlist('+p.id+')">แจ้งเตือนเมื่อมีของ</button>'
+        : '<button class="quickadd" onclick="addCart('+p.id+')" '+(left<=0?'disabled':'')+'>'+
+          (left<=0 ? 'หยิบครบจำนวนที่มีแล้ว' : 'หยิบใส่ตะกร้า')+'</button>')+
     '</div>'+
     '<div class="pbody">'+
       '<span class="sku">'+esc(p.category)+'</span>'+
@@ -2213,8 +2257,10 @@ function drawProduct(p, rv){
         '<div style="display:flex;gap:9px;flex-wrap:wrap">'+
           '<div class="qty"><button onclick="mq(-1,'+avail(p)+')">−</button><span id="mqty">'+(avail(p)>0?1:0)+'</span>'+
           '<button onclick="mq(1,'+avail(p)+')">+</button></div>'+
-          '<button class="btn" onclick="addCart('+p.id+', +document.getElementById(\'mqty\').textContent);closeModal()" '+(avail(p)<=0?'disabled':'')+'>'+
-          (p.stock<=0?'สินค้าหมด':(avail(p)<=0?'หยิบครบแล้ว':'ใส่ตะกร้า'))+'</button>'+
+          (p.stock<=0
+            ? '<button class="btn clay" onclick="openWaitlist('+p.id+')">แจ้งเตือนเมื่อมีของ</button>'
+            : '<button class="btn" onclick="addCart('+p.id+', +document.getElementById(\'mqty\').textContent);closeModal()" '+(avail(p)<=0?'disabled':'')+'>'+
+              (avail(p)<=0?'หยิบครบแล้ว':'ใส่ตะกร้า')+'</button>')+
           '<button class="btn ghost" onclick="toggleCompare('+p.id+')">⇄ เปรียบเทียบ</button>'+
           '<button class="btn ghost" onclick="shareProduct('+p.id+')" title="คัดลอกลิงก์สินค้า">คัดลอกลิงก์</button>'+
         '</div>'+
@@ -3900,6 +3946,23 @@ function adminDash(){
       '<img src="'+esc(heroImage())+'" alt="ตัวอย่างรูปแบนเนอร์" style="width:100%;display:block">'+
       '</div>' : '<div class="note" style="margin-top:12px">ยังไม่มีรูปจริง ระบบใช้ภาพวาดในตัวเว็บแทน</div>')+
     '</div>'+
+    '<div class="panel"><h3>ลูกค้ารอสินค้าเข้า ('+(DB.waitlist||[]).filter(function(w){return !w.notified;}).length+')</h3>'+
+    (function(){
+      var g = {};
+      (DB.waitlist||[]).forEach(function(w){
+        if(w.notified) return;
+        var k = w.products ? w.products.name : ('สินค้ารหัส '+w.product_id);
+        g[k] = (g[k]||0) + 1;
+      });
+      var keys = Object.keys(g).sort(function(a,b){ return g[b]-g[a]; });
+      if(!keys.length) return '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีลูกค้าลงชื่อรอสินค้า</p>';
+      return '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 10px">'+
+        'ใช้ตัดสินใจว่าควรสั่งสินค้ารายการไหนเข้าร้านก่อน</p>'+
+        keys.map(function(k){
+          return '<div class="sum"><span>'+esc(k)+'</span><b style="color:var(--clay)">'+g[k]+' คนรอ</b></div>';
+        }).join('');
+    })()+
+    '</div>'+
     '<div class="panel"><h3>สินค้าใกล้หมด</h3>'+
       (low.length? low.map(function(p){
         return '<div class="sum"><span>'+esc(p.name)+'</span><b style="color:'+(p.stock===0?'var(--danger)':'var(--warn)')+'">'+p.stock+' ชิ้น</b></div>';
@@ -4007,12 +4070,18 @@ function adminCatalog(){
       '<td><div class="sku">'+esc(p.sku)+'</div><b>'+esc(p.name)+'</b></td><td>'+esc(p.category)+'</td>'+
       '<td>฿'+baht(p.price)+(p.old_price>0?'<div class="sku"><s>฿'+baht(p.old_price)+'</s></div>':'')+'</td>'+
       '<td><div class="qty"><button onclick="quickStock('+p.id+',-1)">−</button><span'+(p.stock<=5?' style="color:var(--danger)"':'')+'>'+p.stock+'</span><button onclick="quickStock('+p.id+',1)">+</button></div></td>'+
-      '<td>'+(p.is_active?'<span class="status s-shipped">เปิดขาย</span>':'<span class="status s-reject">ปิดขาย</span>')+'</td>'+
+      '<td>'+(p.is_active?'<span class="status s-shipped">เปิดขาย</span>':'<span class="status s-reject">ปิดขาย</span>')+
+        (waitingFor(p.id)? '<div class="sku" style="color:var(--clay);font-weight:600">มีคนรอ '+waitingFor(p.id)+' คน</div>':'')+'</td>'+
       '<td style="white-space:nowrap"><button class="btn sm ghost" onclick="editProduct('+p.id+')">แก้ไข</button> '+
       '<button class="btn sm danger" onclick="delProduct('+p.id+')">ลบ</button></td></tr>';
     }).join('')+'</table></div></div>';
 }
 function previewArt(v){ var el=$('artPrev'); if(el) el.innerHTML=art(v); }
+
+/* จำนวนผู้ที่ลงชื่อรอสินค้าชิ้นนี้ */
+function waitingFor(pid){
+  return (DB.waitlist||[]).filter(function(w){ return w.product_id===pid && !w.notified; }).length;
+}
 
 /* ---------- 37) คำสั่งซื้อและการตรวจสอบเครดิต ---------- */
 function adminOrders(){
