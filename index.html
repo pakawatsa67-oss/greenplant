@@ -354,6 +354,16 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .note{background:#F3F9F4;border:1px solid #CBE3D2;border-radius:11px;padding:12px 14px;font-size:13.5px;color:#2C6142}
 .note.warn{background:#FDF6E3;border-color:#EBD9A6;color:#7A5F11}
 .feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.rvcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;margin:0;display:flex;flex-direction:column;gap:10px}
+.rvcard blockquote{margin:0;font-size:15px;line-height:1.75;color:var(--ink)}
+.rvcard blockquote:before{content:'“';font-family:var(--display);font-size:30px;color:var(--leaf);
+  line-height:0;vertical-align:-8px;margin-right:2px}
+.rvcard figcaption{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;
+  border-top:1px solid var(--line);padding-top:12px}
+.rvcard figcaption b{font-size:14px}
+.rvcard figcaption small{font-size:12.5px;color:var(--ink-2);width:100%}
 .cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
 .catcard{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
   border-radius:var(--radius);overflow:hidden;text-align:left;padding:0;transition:.2s;cursor:pointer}
@@ -664,7 +674,7 @@ function ppPayload(amount){
 /* ---------- 3) ข้อมูลที่โหลดมาเก็บไว้ในเครื่อง ---------- */
 var DB = { products:[], ratings:{}, reviews:{}, myOrders:[], adminOrders:[], members:[], messages:[],
            auctions:[], bids:{}, coupons:[], subscribers:[],
-           summary:null, myReviews:[], myBids:[], audit:[], best:{}, allReviews:[] };
+           summary:null, myReviews:[], myBids:[], audit:[], best:{}, allReviews:[], recentReviews:[] };
 
 /* ---------- 4) สถานะหน้าจอ ---------- */
 var S = {
@@ -789,6 +799,15 @@ async function loadBestSellers(){
   if(r.error || !r.data) return;
   DB.best = {};
   r.data.forEach(function(x){ DB.best[x.product_id] = Number(x.sold_qty) || 0; });
+}
+
+/* ---------- 6ง) โหลดรีวิวล่าสุดสำหรับหน้าแรก ---------- */
+/* ตารางรีวิวเปิดให้อ่านได้ทุกคนอยู่แล้ว และไม่มีข้อมูลติดต่อของผู้เขียน */
+async function loadRecentReviews(){
+  var r = await sb.from('reviews').select('*, products(name, art_key, image_url)')
+            .gte('stars', 4)
+            .order('created_at', {ascending:false}).limit(6);
+  if(!r.error && r.data) DB.recentReviews = r.data;
 }
 
 /* ---------- 7) โหลดรีวิวของสินค้าหนึ่งชิ้น ---------- */
@@ -2023,8 +2042,35 @@ function viewHome(){
         '<div><b>ตอบรับคำสั่งซื้อ</b><p>ออกเลขที่คำสั่งซื้อและใบตอบรับทันทีเมื่อยืนยันการสั่งซื้อ</p></div>'+
       '</div></div></section>'+
     recentlyViewed()+
+    reviewWall()+
     '<section style="padding-top:0">'+ newsletterBox() +'</section>'+
   '</div>';
+}
+
+/* ---------- เสียงจากผู้ซื้อจริงบนหน้าแรก ---------- */
+function reviewWall(){
+  var rv = (DB.recentReviews || []).slice(0, 3);
+  if(rv.length < 2) return '';          // มีน้อยเกินไปยังไม่ต้องแสดง
+  var total = 0, sum = 0;
+  DB.products.forEach(function(p){
+    var r = ratingOf(p.id);
+    if(r.n){ total += r.n; sum += r.avg * r.n; }
+  });
+  var avg = total ? Math.round(sum / total * 10) / 10 : 0;
+  return '<section style="padding-top:8px"><div class="sechead"><div>'+
+    '<div class="eyebrow">เสียงจากผู้ซื้อจริง</div>'+
+    '<h2>ลูกค้าพูดถึงเราแบบนี้</h2>'+
+    '<p>'+(total? 'คะแนนเฉลี่ย '+avg+' จาก '+total+' รีวิว · ':'')+
+    'ทุกรีวิวเขียนโดยผู้ที่ซื้อสินค้าและได้รับของแล้วเท่านั้น</p></div></div>'+
+    '<div class="wall">'+ rv.map(function(r){
+      return '<figure class="rvcard">'+
+        '<div class="stars">'+starRow(r.stars)+'</div>'+
+        '<blockquote>'+esc(r.body)+'</blockquote>'+
+        '<figcaption><b>'+esc(r.author_name)+'</b>'+
+        '<span class="verified">ซื้อจริง</span>'+
+        '<small>'+esc(r.products ? r.products.name : 'สินค้าของร้าน')+'</small></figcaption>'+
+      '</figure>';
+    }).join('') +'</div></section>';
 }
 
 /* ---------- สินค้าที่เพิ่งดู ---------- */
@@ -4185,6 +4231,7 @@ async function boot(){
     try{ await loadPublicCoupons(); }catch(e1){ console.warn('โหลดคูปองไม่สำเร็จ', e1); }
     try{ await loadSettings(); }catch(e4){ console.warn('โหลดค่าตั้งค่าไม่สำเร็จ', e4); }
     try{ await loadBestSellers(); }catch(e5){ console.warn('โหลดอันดับขายดีไม่สำเร็จ', e5); }
+    try{ await loadRecentReviews(); }catch(e6){ console.warn('โหลดรีวิวล่าสุดไม่สำเร็จ', e6); }
     S.ready = true;
     if(!fromEmail) S.view = initialView();   // เปิดหน้าตามลิงก์ที่ผู้ใช้กดเข้ามา
     render();
