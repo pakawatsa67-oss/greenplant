@@ -1384,7 +1384,7 @@ async function closeAuction(aid){
 }
 function newAuction(){
   var d=new Date(Date.now()+3*86400000);
-  S.editAuction = {id:0, title:'', sci_name:'', description:'', art_key:'monstera',
+  S.editAuction = {id:0, title:'', sci_name:'', description:'', art_key:'monstera', image_url:'',
     start_price:1000, min_increment:50, extend_seconds:120, ends_at:d.toISOString().slice(0,16)};
   render();
 }
@@ -1396,9 +1396,20 @@ function editAuction(id){
 }
 async function saveAuction(){
   var e=S.editAuction;
+  // รับได้ทั้งลิงก์รูปเต็มและรหัสรูปจาก Pexels
+  var img = ($('au_img') ? $('au_img').value : '').trim();
+  var imgUrl = null;
+  if(img){
+    if(/^https?:\/\//.test(img)) imgUrl = img;
+    else {
+      var mm = img.match(/(\d{4,})/);
+      if(!mm){ toast('ใส่ลิงก์รูปเต็ม หรือรหัสรูปจาก Pexels เช่น 18343648'); return; }
+      imgUrl = 'https://images.pexels.com/photos/'+mm[1]+'/pexels-photo-'+mm[1]+'.jpeg?auto=compress&cs=tinysrgb&w=900';
+    }
+  }
   var row = {
     title:$('au_title').value.trim(), sci_name:$('au_sci').value.trim(),
-    description:$('au_desc').value.trim(), art_key:$('au_art').value,
+    description:$('au_desc').value.trim(), art_key:$('au_art').value, image_url:imgUrl,
     start_price:Number($('au_start').value), min_increment:Number($('au_inc').value),
     extend_seconds:Math.max(0, Number($('au_ext') ? $('au_ext').value : 120) || 0),
     ends_at:new Date($('au_end').value).toISOString()
@@ -3553,12 +3564,17 @@ function adminAuction(){
       '<div class="field"><label class="f" for="au_ext">ต่อเวลาอัตโนมัติ (วินาที · 0 = ไม่ต่อ)</label>'+
       '<input id="au_ext" type="number" min="0" step="30" value="'+(e.extend_seconds!=null?e.extend_seconds:120)+'"></div></div>'+
       '<div class="row2">'+
-      '<div class="field"><label class="f" for="au_art">ภาพประกอบ</label><select id="au_art" onchange="previewArt(this.value)">'+
+      '<div class="field"><label class="f" for="au_art">ภาพวาดสำรอง (ใช้เมื่อไม่มีรูปจริง)</label>'+
+      '<select id="au_art" onchange="previewArt(this.value)">'+
       ART_KEYS.map(function(a){return '<option'+(e.art_key===a?' selected':'')+'>'+a+'</option>';}).join('')+'</select></div></div>'+
+      '<div class="field"><label class="f" for="au_img">รูปจริง (ลิงก์รูปเต็ม หรือรหัสรูปจาก Pexels)</label>'+
+      '<input id="au_img" type="text" value="'+esc(e.image_url||'')+'" placeholder="https://… หรือ 18343648">'+
+      '<div class="sku" style="margin-top:5px">ของประมูลเป็นไม้หายาก แนะนำให้ใส่รูปจริงเสมอ '+
+      'เพราะผู้ร่วมประมูลตัดสินใจจากรูปเป็นหลัก · เว้นว่างไว้จะใช้ภาพวาดสำรอง</div></div>'+
       '<div style="display:flex;gap:10px"><button class="btn" onclick="saveAuction()" '+(S.busy?'disabled':'')+'>บันทึก</button>'+
       '<button class="btn ghost" onclick="S.editAuction=null;render()">ยกเลิก</button></div></div>'+
       '<div class="panel"><h3>ตัวอย่างภาพ</h3><div id="artPrev" style="background:#EDF3EC;border-radius:14px;padding:18px;display:grid;place-items:center">'+
-      art(e.art_key||'monstera')+'</div>'+
+      (e.image_url? '<img src="'+esc(e.image_url)+'" class="pimg" alt="ตัวอย่างรูปรายการประมูล">' : art(e.art_key||'monstera'))+'</div>'+
       '<div class="note" style="margin-top:12px">เมื่อหมดเวลา ระบบจะไม่รับการเสนอราคาเพิ่มโดยอัตโนมัติ แต่ผู้ดูแลต้องกด “ปิดประมูล” เพื่อประกาศผู้ชนะอย่างเป็นทางการ</div></div></div>';
   }
   return '<div class="panel">'+
