@@ -565,6 +565,7 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
         <a href="#" onclick="goLegal('privacy');return false">นโยบายความเป็นส่วนตัว</a>
         <a href="#" onclick="goLegal('terms');return false">เงื่อนไขการใช้บริการ</a>
         <a href="#" onclick="goLegal('returns');return false">การคืนสินค้าและคืนเงิน</a>
+        <a href="#" onclick="openUnsubscribe();return false">ยกเลิกรับข่าวสาร</a>
       </div>
     </div>
     <div class="copy">
@@ -1302,6 +1303,38 @@ async function subscribeNews(){
     toast('สมัครรับข่าวสารเรียบร้อย รอรับส่วนลดและโปรโมชันใหม่ได้เลย');
   }catch(e){ toast(errMsg(e)); }
   finally{ setBusy(false); }
+}
+
+/* ---------- 20ข) ยกเลิกรับข่าวสาร (ถอนความยินยอมตาม PDPA) ---------- */
+function openUnsubscribe(){
+  $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
+    '<div class="modal narrow" role="dialog" aria-modal="true">'+
+    '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
+    '<div class="eyebrow">PDPA · ถอนความยินยอม</div>'+
+    '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 6px;font-weight:600;line-height:1.45">ยกเลิกรับข่าวสาร</h2>'+
+    '<p style="color:var(--ink-2);font-size:14px;margin:0 0 14px">'+
+    'กรอกอีเมลที่เคยสมัครไว้ ระบบจะนำออกจากรายชื่อทันที '+
+    'ท่านมีสิทธิ์ถอนความยินยอมได้ตลอดเวลาตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</p>'+
+    '<div class="field"><label class="f" for="unsubEmail">อีเมล</label>'+
+    '<input id="unsubEmail" type="email" value="'+(S.user?esc(S.user.email):'')+'" placeholder="you@mail.com" '+
+    'onkeydown="if(event.key===\'Enter\')doUnsubscribe()"></div>'+
+    '<div style="display:flex;gap:10px"><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>'+
+    '<button class="btn" onclick="doUnsubscribe()">นำอีเมลออกจากรายชื่อ</button></div></div></div>';
+  setTimeout(function(){ var f=$('unsubEmail'); if(f) f.focus(); }, 60);
+}
+async function doUnsubscribe(){
+  var email = $('unsubEmail').value.trim();
+  if(!email || email.indexOf('@')<0){ toast('กรอกอีเมลให้ถูกต้อง'); return; }
+  if(locked('unsub')) return;
+  lock('unsub');
+  setBusy(true);
+  try{
+    var r = await sb.rpc('unsubscribe_newsletter', {p_email:email});
+    if(r.error) throw r.error;
+    closeModal();
+    toast(r.data.message);
+  }catch(e){ toast(errMsg(e)); }
+  finally{ setBusy(false); unlock('unsub'); }
 }
 
 /* ---------- 21) โหลดคูปองที่เปิดใช้งาน (ลูกค้าทุกคนเห็นได้) ---------- */
@@ -2108,7 +2141,8 @@ function promoBanner(){
 function newsletterBox(){
   return '<div class="nl"><div>'+
     '<h3>รับข่าวสารต้นไม้เข้าใหม่และโค้ดส่วนลดก่อนใคร</h3>'+
-    '<p>เราส่งเดือนละไม่เกิน 2 ฉบับ และยกเลิกได้ทุกเมื่อ · การสมัครถือเป็นการให้ความยินยอมตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล</p></div>'+
+    '<p>เราส่งเดือนละไม่เกิน 2 ฉบับ · การสมัครถือเป็นการให้ความยินยอมตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล '+
+    'และ<a href="#" onclick="event.preventDefault();openUnsubscribe()" style="color:#9AD3AC;font-weight:600">ยกเลิกได้ทุกเมื่อ</a></p></div>'+
     '<div class="row"><input id="nlIn" type="email" placeholder="อีเมลของคุณ" onkeydown="if(event.key===\'Enter\')subscribeNews()">'+
     '<button class="btn leaf" onclick="subscribeNews()">สมัคร</button></div></div>';
 }
@@ -3347,7 +3381,7 @@ var LEGAL = {
       ['5. ระยะเวลาการเก็บรักษา',
        'เก็บข้อมูลคำสั่งซื้อไว้ 5 ปีตามระยะเวลาที่กฎหมายภาษีอากรกำหนด หลังจากนั้นจะลบหรือทำให้ไม่สามารถระบุตัวบุคคลได้'],
       ['6. สิทธิของเจ้าของข้อมูล',
-       'ท่านมีสิทธิขอเข้าถึง ขอสำเนา ขอแก้ไขให้ถูกต้อง ขอลบ ขอคัดค้านการประมวลผล ขอให้ระงับการใช้ และขอถอนความยินยอมได้ตลอดเวลา โดยติดต่อผ่านแบบฟอร์มติดต่อร้านหรืออีเมล privacy@greenplant.co.th'],
+       'ท่านมีสิทธิขอเข้าถึง ขอสำเนา ขอแก้ไขให้ถูกต้อง ขอลบ ขอคัดค้านการประมวลผล ขอให้ระงับการใช้ และขอถอนความยินยอมได้ตลอดเวลา สมาชิกใช้สิทธิขอสำเนาและขอลบข้อมูลได้ด้วยตนเองที่หน้าบัญชีของฉัน แท็บข้อมูลส่วนบุคคล ส่วนการยกเลิกรับข่าวสารทำได้ที่ลิงก์ท้ายเว็บไซต์โดยไม่ต้องติดต่อเจ้าหน้าที่ หากต้องการใช้สิทธิอื่นติดต่อที่ privacy@greenplant.co.th'],
       ['7. มาตรการรักษาความมั่นคงปลอดภัย',
        'ข้อมูลถูกเข้ารหัสระหว่างรับส่งด้วย HTTPS/TLS จัดเก็บบนฐานข้อมูลที่ควบคุมสิทธิ์การเข้าถึงระดับแถวข้อมูล (Row Level Security) และรหัสผ่านถูกเข้ารหัสทางเดียวโดยไม่มีผู้ใดเห็นค่าจริง']
     ]
