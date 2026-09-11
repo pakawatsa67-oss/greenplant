@@ -120,7 +120,8 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
 
 /* ---------- Hero ---------- */
 .hero{background:var(--forest);color:#F1F6EF;border-radius:26px;margin:22px auto 0;position:relative;overflow:hidden}
-.hero .inner{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:center;padding:52px 46px}
+.hero .inner{display:grid;grid-template-columns:1.05fr .95fr;gap:0;align-items:stretch;min-height:372px}
+.hero .herocopy{padding:44px 10px 44px 46px;align-self:center;max-width:52ch}
 .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:#8FBF9F}
 .hero h1{font-family:var(--display);font-size:clamp(32px,4.6vw,52px);line-height:1.38;margin:10px 0 16px;font-weight:600}
 .hero h1 em{font-style:italic;color:#9AD3AC}
@@ -128,10 +129,11 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
 .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
 .hero .btn.ghost{border-color:rgba(255,255,255,.3);color:#fff}
 .hero .btn.ghost:hover{background:rgba(255,255,255,.1)}
-.heroart{display:grid;place-items:center;position:relative}
-.heroimg{width:100%;max-width:420px;aspect-ratio:1/1;object-fit:cover;border-radius:20px;display:block;
-  box-shadow:0 24px 60px -24px rgba(0,0,0,.55)}
-.herostats{display:flex;gap:26px;border-top:1px solid rgba(255,255,255,.14);padding:16px 46px;flex-wrap:wrap}
+.heroart{display:grid;place-items:stretch;position:relative;overflow:hidden}
+.heroimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:0}
+.heroart:after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,var(--forest) 0%,rgba(15,46,35,.55) 14%,rgba(15,46,35,0) 42%)}
+.herostats{display:flex;gap:26px;border-top:1px solid rgba(255,255,255,.14);padding:14px 46px;flex-wrap:wrap}
 .herostats div{font-size:13px;color:#A8C6B2}
 .herostats b{display:block;font-family:var(--display);font-size:20px;color:#fff;letter-spacing:.4px;line-height:1.5}
 
@@ -394,10 +396,10 @@ footer a:hover{color:#fff}
   flex-wrap:wrap;box-shadow:0 18px 40px -18px rgba(0,0,0,.6);font-size:13.5px;max-width:940px;margin:0 auto}
 .cookiebar span{color:#A8C6B2}
 .cookiebar .btn.ghost{border-color:rgba(255,255,255,.32);color:#fff}
-.promo{background:linear-gradient(100deg,var(--clay),#8E4022);color:#fff;border-radius:18px;padding:22px 26px;
-  display:flex;gap:20px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:22px}
-.promo h3{font-family:var(--display);font-size:23px;margin:2px 0 4px;font-weight:600;line-height:1.4}
-.promo p{margin:0;font-size:14px;color:#FBE6DC}
+.promo{background:linear-gradient(100deg,var(--clay),#8E4022);color:#fff;border-radius:14px;padding:14px 20px;
+  display:flex;gap:16px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.promo h3{font-family:var(--display);font-size:19px;margin:0 0 2px;font-weight:600;line-height:1.4}
+.promo p{margin:0;font-size:13px;color:#FBE6DC}
 .promo .code{font-family:var(--mono);background:rgba(255,255,255,.16);border:1px dashed rgba(255,255,255,.5);
   border-radius:9px;padding:7px 14px;font-size:17px;letter-spacing:.12em;display:inline-block;margin-top:8px}
 .nl{background:var(--forest);color:#CFE3D4;border-radius:18px;padding:26px;display:grid;
@@ -434,7 +436,9 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
   .authwrap{grid-template-columns:1fr}
   .authside{display:none}
   .nl{grid-template-columns:1fr}
-  .hero .inner{grid-template-columns:1fr;padding:34px 26px}
+  .hero .inner{grid-template-columns:1fr;min-height:auto}
+  .hero .herocopy{padding:30px 24px 26px;max-width:none}
+  .herostats{padding:14px 24px;gap:18px}
   .heroart{display:none}
   .layout2{grid-template-columns:1fr}
   .pdetail{grid-template-columns:1fr}
@@ -2091,9 +2095,11 @@ function card(p){
       '<div class="rate"><span class="stars">'+starRow(r.avg)+'</span>'+(r.n?r.avg+' ('+r.n+')':'ยังไม่มีรีวิว')+
         soldBadge(p)+'</div>'+
       '<div class="price">฿'+baht(p.price)+(p.old_price>0?'<s>฿'+baht(p.old_price)+'</s>':'')+'</div>'+
-      (p.stock>0 ? '<div class="stockline'+(left<=3?' low':'')+'">'+
-        (left>0 ? 'หยิบเพิ่มได้อีก '+left+' ชิ้น' : 'หยิบครบจำนวนที่มีในคลังแล้ว')+
-        (got>0 ? ' · อยู่ในตะกร้า '+got : '')+'</div>' : '')+
+      (p.stock>0 && (left<=5 || got>0)
+        ? '<div class="stockline'+(left<=3?' low':'')+'">'+
+          (left>0 ? 'เหลืออีก '+left+' ชิ้น' : 'หยิบครบจำนวนที่มีในคลังแล้ว')+
+          (got>0 ? ' · อยู่ในตะกร้า '+got : '')+'</div>'
+        : '')+
     '</div></article>';
 }
 
@@ -2120,8 +2126,7 @@ function viewHome(){
   var promo = DB.coupons.filter(function(c){return c.is_active;})[0] || null;
   return '<div class="wrap">'+
     '<div class="hero"><div class="inner">'+
-      '<div>'+
-        '<div class="eyebrow">Plant · Pot · Soil</div>'+
+      '<div class="herocopy">'+
         '<h1>ปลูกความสงบ<br>ไว้ใน<em>บ้านของคุณ</em></h1>'+
         '<p>ต้นไม้ฟอกอากาศ กระถาง และดินปลูก คัดจากโรงเรือนของเราเอง เลือกดูรายละเอียดการดูแลได้ครบก่อนตัดสินใจ ส่งถึงบ้านพร้อมกล่องกันกระแทก</p>'+
         '<div class="cta">'+
@@ -2139,11 +2144,11 @@ function viewHome(){
     '</div></div>'+
 
     '<section style="padding-bottom:0">'+ promoBanner() +'</section>'+
-    '<section style="padding-top:14px"><div class="sechead"><div><div class="eyebrow">หมวดหมู่สินค้า</div>'+
+    '<section style="padding-top:14px"><div class="sechead"><div>'+
       '<h2>เลือกตามสิ่งที่คุณกำลังหา</h2></div></div>'+
       '<div class="cats">'+CATS.map(catCard).join('')+'</div></section>'+
 
-    '<section style="padding-top:8px"><div class="sechead"><div><div class="eyebrow">ขายดีประจำเดือน</div>'+
+    '<section style="padding-top:8px"><div class="sechead"><div>'+
       '<h2>'+(hasSales()?'ต้นที่ลูกค้าเลือกซื้อบ่อยที่สุด':'สินค้าแนะนำจากร้าน')+'</h2>'+
       '<p>'+(hasSales()
         ? 'จัดอันดับจากยอดสั่งซื้อจริงในระบบ ไม่นับรายการที่ถูกยกเลิก'
@@ -2151,11 +2156,11 @@ function viewHome(){
       '<button class="btn ghost" onclick="go(\'shop\')">ดูสินค้าทั้งหมด</button></div>'+
       '<div class="grid">'+best.map(card).join('')+'</div></section>'+
 
-    (sale.length?'<section style="padding-top:8px"><div class="sechead"><div><div class="eyebrow">โปรโมชัน</div>'+
+    (sale.length?'<section style="padding-top:8px"><div class="sechead"><div>'+
       '<h2>ลดราคาสัปดาห์นี้</h2></div></div><div class="grid">'+sale.map(card).join('')+'</div></section>':'')+
 
     '<section><div class="panel" style="display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:center">'+
-      '<div><div class="eyebrow">บริการหลังการขาย</div>'+
+      '<div>'+
       '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 10px;font-weight:600;line-height:1.45">ซื้อแล้วไม่ได้ปล่อยให้เลี้ยงเอง</h2>'+
       '<p style="color:var(--ink-2);margin:0 0 16px">ทุกคำสั่งซื้อติดตามสถานะได้ตลอดเส้นทาง ตั้งแต่ร้านอนุมัติ แพ็กของ จนถึงมือคุณ หากใบเหลืองหรือรากเน่าภายใน 7 วัน ทักหาเราได้ทันที</p>'+
       '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" onclick="go(\'track\')">ติดตามพัสดุ</button>'+
@@ -2183,7 +2188,6 @@ function reviewWall(){
   });
   var avg = total ? Math.round(sum / total * 10) / 10 : 0;
   return '<section style="padding-top:8px"><div class="sechead"><div>'+
-    '<div class="eyebrow">เสียงจากผู้ซื้อจริง</div>'+
     '<h2>ลูกค้าพูดถึงเราแบบนี้</h2>'+
     '<p>'+(total? 'คะแนนเฉลี่ย '+avg+' จาก '+total+' รีวิว · ':'')+
     'ทุกรีวิวเขียนโดยผู้ที่ซื้อสินค้าและได้รับของแล้วเท่านั้น</p></div></div>'+
@@ -2215,14 +2219,14 @@ function promoBanner(){
     return c.is_active && (!c.usage_limit || c.used_count < c.usage_limit);
   });
   if(!active.length){
-    return '<div class="promo"><div><div class="eyebrow" style="color:#FBE6DC">โปรโมชัน</div>'+
+    return '<div class="promo"><div>'+
       '<h3>ส่งฟรีเมื่อซื้อครบ 1,000 บาท</h3>'+
       '<p>ทุกคำสั่งซื้อจัดส่งพร้อมกล่องกันกระแทกและคู่มือดูแลฉบับย่อ</p></div>'+
       '<button class="btn ghost" style="border-color:rgba(255,255,255,.45);color:#fff" onclick="go(\'shop\')">เลือกซื้อเลย</button></div>';
   }
   var c = active[0];
   var left = c.ends_at ? countdown(c.ends_at) : null;
-  return '<div class="promo"><div><div class="eyebrow" style="color:#FBE6DC">โปรโมชันประจำสัปดาห์</div>'+
+  return '<div class="promo"><div>'+
     '<h3>'+esc(c.description)+'</h3>'+
     '<p>กรอกรหัสนี้ในหน้าตะกร้าสินค้าเพื่อรับส่วนลดทันที'+
     (left && !left.ended? ' · เหลือเวลา '+left.text : '')+
