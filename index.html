@@ -2527,7 +2527,7 @@ function viewCheckout(){
             '<div class="ppfoot">พร้อมเพย์ · ระบุยอดแล้ว</div></div>'+
           '</div>'+
           '<div class="qrinfo">'+
-            '<div class="eyebrow">Thai QR Payment</div>'+
+            
             '<h4>สแกนเพื่อโอนเงินให้ร้าน</h4>'+
             '<div class="sum"><span>ธนาคาร</span><b>'+esc(SHOP.bank)+'</b></div>'+
             '<div class="sum"><span>ชื่อบัญชี</span><b>'+esc(SHOP.accName)+'</b></div>'+
@@ -3936,7 +3936,7 @@ function viewAdmin(){
     '<div><div class="eyebrow">Merchant Back Office</div><h2>ระบบจัดการหลังร้าน GreenPlant</h2>'+
     '<p>ผู้ดูแล: '+esc(S.user.name||S.user.email)+'</p></div>'+
     '<div style="display:flex;gap:8px"><button class="btn ghost" style="border-color:rgba(255,255,255,.3);color:#fff" onclick="go(\'home\')">ดูหน้าร้าน</button>'+
-    '<button class="btn clay" onclick="logout()">ออกจากระบบ</button></div></div></div>'+
+    '<button class="btn ghost" style="border-color:rgba(255,255,255,.3);color:#fff" onclick="logout()">ออกจากระบบ</button></div></div></div>'+
     '<div class="tabs">'+
     [['dash','ภาพรวม'],['cat','จัดการสินค้า (E-Catalog)'],['ord','คำสั่งซื้อและการอนุมัติ'],['ship','การจัดส่งและติดตาม'],
      ['mem','สมาชิกและเครดิต'],['promo','โปรโมชันและคูปอง'],['auc','การประมูล'],['seo','ตรวจ SEO'],
