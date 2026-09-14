@@ -2,10 +2,11 @@ User-agent: *
 Allow: /
 
 # หน้าที่เป็นข้อมูลส่วนตัวและระบบหลังร้าน ไม่ต้องการให้เก็บลงดัชนี
-Disallow: /#/admin
-Disallow: /#/orders
-Disallow: /#/checkout
-Disallow: /#/cart
-Disallow: /#/wish
+Disallow: /admin
+Disallow: /orders
+Disallow: /checkout
+Disallow: /cart
+Disallow: /wish
+Disallow: /done
 
 Sitemap: https://greenplant-woad.vercel.app/sitemap.xml

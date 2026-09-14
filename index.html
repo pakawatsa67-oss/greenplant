@@ -1928,11 +1928,8 @@ var _navLock = false;
 async function go(v){
   if(v==='admin' && !isAdmin()){ openAuth('login', true); return; }
   S.view=v;
-  if(location.hash !== '#/'+v){
-    _navLock = true;
-    location.hash = '#/'+v;
-    setTimeout(function(){ _navLock=false; }, 0);
-  }
+  var want = pathFor(v);
+  if(location.pathname !== want || location.search) pushUrl(want);
   document.getElementById('navlinks').classList.remove('open');
   window.scrollTo({top:0,behavior:'smooth'});
   render();
@@ -2349,22 +2346,17 @@ function closeModal(){
   S.lastFocus = null;
   if(S.openPid){                       // ปิดหน้าสินค้าแล้วคืน URL กลับเป็นหน้าเดิม
     S.openPid = null;
-    _navLock = true;
-    location.hash = '#/' + S.view;
-    setTimeout(function(){ _navLock=false; setSEO(S.view); }, 0);
+    pushUrl(pathFor(S.view), true);
+    setTimeout(function(){ setSEO(S.view); }, 0);
   }
 }
 function setProductHash(id){
-  var h = '#/p/' + id;
-  if(location.hash !== h){
-    _navLock = true;
-    location.hash = h;
-    setTimeout(function(){ _navLock=false; }, 0);
-  }
+  var want = '/product/' + id;
+  if(location.pathname !== want) pushUrl(want);
   setSEO('product');
 }
 function shareProduct(id){
-  var url = location.origin + location.pathname + '#/p/' + id;
+  var url = location.origin + '/product/' + id;
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(url).then(function(){ toast('คัดลอกลิงก์สินค้าแล้ว'); },
                                            function(){ toast(url); });
@@ -3027,34 +3019,74 @@ function couponBox(){
 
 
 /* ---------- รับการกดปุ่มย้อนกลับของเบราว์เซอร์ ---------- */
-window.addEventListener('hashchange', function(){
+window.addEventListener('popstate', function(){
   if(_navLock) return;
-  var raw = location.hash || '';
-  if(isAuthHash(raw)) return;                     // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
-  var pm = raw.match(/^#\/p\/(\d+)$/);            // ลิงก์ตรงไปยังสินค้าชิ้นหนึ่ง
-  if(pm){ openProduct(Number(pm[1])); return; }
-  if(raw.indexOf('#/shop?')===0){ applyShopHash(raw); go('shop'); return; }
-  if(S.openPid){ S.openPid=null; $('modalRoot').innerHTML=''; }
-  var v = raw.replace(/^#\/?/, '') || 'home';
-  if(VIEWS.indexOf(v) < 0) v = 'home';
-  if(v !== S.view) go(v);
+  if(isAuthHash(location.hash || '')) return;     // token จากอีเมล ไม่ใช่การเปลี่ยนหน้า
+
+  var pid = productFromPath();                    // ที่อยู่ของสินค้ารายชิ้น
+  if(pid){ openProduct(pid); return; }
+  if(S.openPid){ S.openPid = null; $('modalRoot').innerHTML = ''; }
+
+  var v = viewFromPath();
+  if(v === 'shop'){ applyShopHash(location.search); }
+  S.view = v;
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
 });
 /* แยกให้ชัดว่า hash ไหนมาจากลิงก์ยืนยันอีเมล ไม่ใช่แค่ดูว่ามีเครื่องหมายเท่ากับ */
+/* ---------- ระบบที่อยู่แบบเว็บจริง (ไม่ใช้ # นำหน้า) ---------- */
+/* หน้าแรกคือ / ส่วนหน้าอื่นเป็น /ชื่อหน้า และสินค้าเป็น /product/รหัส */
+function pathFor(v){ return (v === 'home') ? '/' : '/' + v; }
+
+/* อ่านชื่อหน้าจากที่อยู่ปัจจุบัน */
+function viewFromPath(){
+  var seg = location.pathname.replace(/^\/+|\/+$/g, '');
+  if(seg === '') return 'home';
+  return VIEWS.indexOf(seg) > -1 ? seg : 'home';
+}
+function productFromPath(){
+  var m = location.pathname.match(/^\/product\/(\d+)\/?$/);
+  return m ? Number(m[1]) : 0;
+}
+
+/* เปลี่ยนที่อยู่โดยไม่โหลดหน้าใหม่ */
+function pushUrl(url, replace){
+  _navLock = true;
+  try{
+    if(replace) history.replaceState(null, '', url);
+    else history.pushState(null, '', url);
+  }catch(e){ /* เปิดจากไฟล์ในเครื่องจะทำไม่ได้ ข้ามไป */ }
+  setTimeout(function(){ _navLock = false; }, 0);
+}
+
+/* ลิงก์แบบเก่าที่เคยแชร์ไว้ (#/shop) ให้พาไปที่อยู่ใหม่ */
+function migrateOldHash(){
+  var raw = location.hash || '';
+  if(!raw || isAuthHash(raw)) return false;
+  var pm = raw.match(/^#\/p\/(\d+)$/);
+  if(pm){ pushUrl('/product/' + pm[1], true); return true; }
+  var m = raw.match(/^#\/([a-z]+)(\?.*)?$/);
+  if(m){
+    var v = VIEWS.indexOf(m[1]) > -1 ? m[1] : 'home';
+    pushUrl(pathFor(v) + (m[2] || ''), true);
+    return true;
+  }
+  return false;
+}
+
 function isAuthHash(raw){
   return /access_token=|refresh_token=|type=recovery|error_code=|error=/.test(raw||'');
 }
 function initialView(){
-  var raw = location.hash || '';
-  if(isAuthHash(raw)) return 'home';              // เป็น token จากอีเมล ไม่ใช่ชื่อหน้า
-  if(/^#\/p\/\d+$/.test(raw)) return 'shop';     // ลิงก์สินค้า ให้เปิดหน้าแคตตาล็อกไว้ด้านหลัง
-  if(raw.indexOf('#/shop?')===0){ applyShopHash(raw); return 'shop'; }
-  var v = raw.replace(/^#\/?/, '');
-  return VIEWS.indexOf(v) > -1 ? v : 'home';
+  if(isAuthHash(location.hash || '')) return 'home';   // token จากอีเมล ไม่ใช่ชื่อหน้า
+  if(productFromPath()) return 'shop';                 // ลิงก์สินค้า เปิดแคตตาล็อกไว้ด้านหลัง
+  if(location.pathname.replace(/^\/+|\/+$/g,'') === 'shop' && location.search){
+    applyShopHash(location.search);
+    return 'shop';
+  }
+  return viewFromPath();
 }
-function pendingProduct(){
-  var m = (location.hash||'').match(/^#\/p\/(\d+)$/);
-  return m ? Number(m[1]) : 0;
-}
+function pendingProduct(){ return productFromPath(); }
 
 
 /* ---------- ไล่หาไฟล์ QR ทีละนามสกุลจนกว่าจะเจอ ---------- */
@@ -3267,15 +3299,11 @@ function syncShopHash(){
   if(S.fLight) q.push('light='+encodeURIComponent(S.fLight));
   if(S.fStock) q.push('stock=1');
   if(S.fSale)  q.push('sale=1');
-  var h = '#/shop' + (q.length ? '?'+q.join('&') : '');
-  if(location.hash !== h){
-    _navLock = true;
-    location.hash = h;
-    setTimeout(function(){ _navLock=false; }, 0);
-  }
+  var h = '/shop' + (q.length ? '?'+q.join('&') : '');
+  if(location.pathname + location.search !== h) pushUrl(h, true);
 }
 function applyShopHash(raw){
-  var qs = raw.split('?')[1];
+  var qs = String(raw || '').split('?')[1];
   S.cat='ทั้งหมด'; S.fCare=''; S.fLight=''; S.fStock=false; S.fSale=false;
   if(!qs) return;
   qs.split('&').forEach(function(pair){
@@ -3597,11 +3625,11 @@ function setSEO(v){
       setMeta('name','description', pp.description.slice(0,150));
       setMeta('property','og:title', pp.name + ' | GreenPlant');
       setMeta('property','og:description', pp.description.slice(0,150));
-      setMeta('property','og:url', location.href);
+      setMeta('property','og:url', location.origin + location.pathname);
       if(pp.image_url) setMeta('property','og:image', pp.image_url);
       setMeta('name','robots','index,follow');
       var can0 = document.querySelector('link[rel="canonical"]');
-      if(can0) can0.setAttribute('href', location.href);
+      if(can0) can0.setAttribute('href', location.origin + location.pathname);
       productLD(pp);
       return;
     }
@@ -3611,9 +3639,9 @@ function setSEO(v){
   setMeta('name','description', m[1]);
   setMeta('property','og:title', m[0]);
   setMeta('property','og:description', m[1]);
-  setMeta('property','og:url', location.href);
+  setMeta('property','og:url', location.origin + location.pathname);
   var can = document.querySelector('link[rel="canonical"]');
-  if(can) can.setAttribute('href', location.href);
+  if(can) can.setAttribute('href', location.origin + location.pathname);
   // หน้าที่เป็นข้อมูลส่วนตัวไม่ควรถูกจัดเก็บลงดัชนีของเสิร์ชเอนจิน
   setMeta('name','robots', ['orders','admin','checkout','done','cart'].indexOf(v)>-1 ? 'noindex,nofollow' : 'index,follow');
   jsonLD(v);
@@ -3629,7 +3657,7 @@ function productLD(p){
   var r=ratingOf(p.id);
   var data={'@context':'https://schema.org','@type':'Product',
     name:p.name, sku:p.sku, category:p.category, description:p.description,
-    offers:{'@type':'Offer', price:Number(p.price), priceCurrency:'THB', url:location.href,
+    offers:{'@type':'Offer', price:Number(p.price), priceCurrency:'THB', url:location.origin+location.pathname,
             availability: p.stock>0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'}};
   if(p.image_url) data.image = p.image_url;
   if(r.n>0) data.aggregateRating={'@type':'AggregateRating', ratingValue:r.avg, reviewCount:r.n};
@@ -4381,6 +4409,7 @@ async function withRetry(fn, tries){
 
 async function boot(){
   render();
+  migrateOldHash();                 // ลิงก์เก่าแบบ #/shop ให้พาไปที่อยู่ใหม่
   var fromEmail = handleAuthHash();
   if(sb.auth.onAuthStateChange){
     sb.auth.onAuthStateChange(function(event){
