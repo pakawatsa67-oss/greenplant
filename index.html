@@ -834,11 +834,11 @@ async function loadReviews(pid){
 /* ---------- 8) ระบบสมาชิก ---------- */
 async function loadProfile(){
   var s = await sb.auth.getUser();
-  if(!s.data || !s.data.user){ S.user=null; return null; }
+  if(!s.data || !s.data.user){ S.user=null; S.pfAddr=null; return null; }
   var uid = s.data.user.id;
   var r = await sb.from('profiles').select('*').eq('id', uid).maybeSingle();
   if(r.error) throw r.error;
-  if(!r.data){ S.user=null; return null; }
+  if(!r.data){ S.user=null; S.pfAddr=null; return null; }
   S.user = {
     id: r.data.id, email: r.data.email || s.data.user.email,
     name: r.data.full_name, phone: r.data.phone, addr: r.data.address,
@@ -896,7 +896,7 @@ async function doRegister(){
 
 async function logout(){
   await sb.auth.signOut();
-  S.user=null; S.wish=[]; DB.myOrders=[]; DB.adminOrders=[]; DB.members=[]; DB.messages=[];
+  S.user=null; S.pfAddr=null; S.wish=[]; DB.myOrders=[]; DB.adminOrders=[]; DB.members=[]; DB.messages=[];
   DB.myReviews=[]; DB.myBids=[]; DB.summary=null;
   toast('ออกจากระบบแล้ว'); go('home');
 }
@@ -1107,17 +1107,47 @@ function openEditShipping(code){
     '<input id="es_name" type="text" value="'+esc(o.receiver_name)+'"></div>'+
     '<div class="field"><label class="f" for="es_phone">เบอร์โทรศัพท์</label>'+
     '<input id="es_phone" type="tel" value="'+esc(o.phone)+'"></div>'+
-    '<div class="field"><label class="f" for="es_addr">ที่อยู่จัดส่ง</label>'+
-    '<textarea id="es_addr" rows="3">'+esc(o.address)+'</textarea></div>'+
+    (function(){
+      S.esAddr = splitAddr(o.address);
+      var a = S.esAddr;
+      return '<div class="field"><label class="f" for="es_a1">บ้านเลขที่ หมู่ ซอย ถนน</label>'+
+        '<input id="es_a1" type="text" value="'+esc(a.line1)+'" oninput="saveEsAddr(\'line1\', this.value)"></div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="f" for="es_a2">ตำบล / แขวง</label>'+
+        '<input id="es_a2" type="text" value="'+esc(a.sub)+'" oninput="saveEsAddr(\'sub\', this.value)"></div>'+
+        '<div class="field"><label class="f" for="es_a3">อำเภอ / เขต</label>'+
+        '<input id="es_a3" type="text" value="'+esc(a.dist)+'" oninput="saveEsAddr(\'dist\', this.value)"></div>'+
+      '</div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="f" for="es_a4">จังหวัด</label>'+
+        '<select id="es_a4" onchange="saveEsAddr(\'province\', this.value)">'+
+        '<option value="">เลือกจังหวัด</option>'+
+        PROVINCES.map(function(p){ return '<option'+(a.province===p[0]?' selected':'')+'>'+p[0]+'</option>'; }).join('')+
+        '</select></div>'+
+        '<div class="field"><label class="f" for="es_a5">รหัสไปรษณีย์</label>'+
+        '<input id="es_a5" type="text" inputmode="numeric" maxlength="5" value="'+esc(a.zip)+'" '+
+        'oninput="saveEsAddr(\'zip\', this.value.replace(/[^0-9]/g,\'\'))"></div>'+
+      '</div>'+
+      '<div class="note" style="margin-bottom:12px"><b>ที่อยู่ที่จะใช้จัดส่ง</b><br>'+
+      '<span id="esAddrPreview">'+esc(joinAddr(a))+'</span></div>';
+    })()+
     '<div class="field"><label class="f" for="es_why">เหตุผลที่แก้ไข</label>'+
     '<input id="es_why" type="text" placeholder="เช่น ลูกค้าแจ้งแก้ไขทางไลน์"></div>'+
     '<div style="display:flex;gap:10px"><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>'+
     '<button class="btn" onclick="saveShipping(\''+esc(code)+'\')">บันทึกการแก้ไข</button></div></div></div>';
 }
+function saveEsAddr(k, v){
+  if(!S.esAddr) S.esAddr = {line1:'',sub:'',dist:'',province:'',zip:''};
+  S.esAddr[k] = v;
+  var pv = $('esAddrPreview');
+  if(pv) pv.textContent = joinAddr(S.esAddr);
+}
+
 async function saveShipping(code){
-  var n=$('es_name').value.trim(), t=$('es_phone').value.trim(), a=$('es_addr').value.trim(),
-      why=$('es_why').value.trim();
+  var n=$('es_name').value.trim(), t=$('es_phone').value.trim(), why=$('es_why').value.trim();
+  var a = joinAddr(S.esAddr);
   if(!n||!t||!a){ toast('กรอกชื่อ เบอร์โทร และที่อยู่ให้ครบ'); return; }
+  if(S.esAddr.zip && !/^\d{5}$/.test(S.esAddr.zip)){ toast('รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก'); return; }
   if(!/^[0-9\-\s]{9,15}$/.test(t)){ toast('รูปแบบเบอร์โทรไม่ถูกต้อง'); return; }
   if(locked('ship'+code)) return;
   lock('ship'+code);
@@ -1725,15 +1755,37 @@ async function loadAccount(){
 }
 
 /* ---------- 27) แก้ไขโปรไฟล์ ---------- */
+function savePfAddr(k, v){
+  if(!S.pfAddr) S.pfAddr = splitAddr(S.user.addr);
+  S.pfAddr[k] = v;
+  var pv = $('pfAddrPreview');
+  if(pv) pv.textContent = joinAddr(S.pfAddr) || 'กรอกให้ครบเพื่อดูที่อยู่ที่จะใช้จัดส่ง';
+}
+
 async function saveProfile(){
-  var n=$('pf_name').value.trim(), t=$('pf_phone').value.trim(), a=$('pf_addr').value.trim();
+  var n=$('pf_name').value.trim(), t=$('pf_phone').value.trim();
+  if(!S.pfAddr) S.pfAddr = splitAddr(S.user.addr);
+  var ap = S.pfAddr, a = joinAddr(ap);
   if(!n){ toast('กรุณากรอกชื่อ-นามสกุล'); return; }
   if(t && !/^[0-9\-\s]{9,15}$/.test(t)){ toast('รูปแบบเบอร์โทรไม่ถูกต้อง เช่น 081-234-5678'); return; }
+  // ที่อยู่กรอกครบหรือเว้นว่างทั้งหมดก็ได้ แต่ถ้ากรอกต้องถูกต้อง
+  if(a){
+    if(ap.zip && !/^\d{5}$/.test(ap.zip)){ toast('รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก'); return; }
+    if(ap.province && ap.zip){
+      var pre=null;
+      for(var i=0;i<PROVINCES.length;i++) if(PROVINCES[i][0]===ap.province) pre=PROVINCES[i][1];
+      if(pre && ap.zip.slice(0,2)!==pre){
+        toast('รหัสไปรษณีย์ '+ap.zip+' ไม่ตรงกับจังหวัด'+ap.province+' กรุณาตรวจสอบอีกครั้ง');
+        return;
+      }
+    }
+  }
   setBusy(true);
   try{
     var r = await sb.from('profiles').update({full_name:n, phone:t, address:a}).eq('id', S.user.id);
     if(r.error) throw r.error;
     await loadProfile();
+    S.pfAddr = splitAddr(S.user.addr);
     toast('บันทึกข้อมูลส่วนตัวแล้ว');
     render();
   }catch(e){ toast(errMsg(e)); }
@@ -1856,7 +1908,7 @@ async function doDeleteAccount(){
     if(r.error) throw r.error;
     closeModal();
     await sb.auth.signOut();
-    S.user=null; S.wish=[]; DB.myOrders=[]; DB.myReviews=[]; DB.myBids=[];
+    S.user=null; S.pfAddr=null; S.wish=[]; DB.myOrders=[]; DB.myReviews=[]; DB.myBids=[];
     toast(r.data.message);
     go('home');
   }catch(e){ toast(errMsg(e)); }
@@ -2844,8 +2896,31 @@ function acctProfile(){
     '<input id="pf_name" type="text" value="'+esc(S.user.name)+'"></div>'+
     '<div class="field"><label class="f" for="pf_phone">เบอร์โทรศัพท์</label>'+
     '<input id="pf_phone" type="tel" value="'+esc(S.user.phone)+'" placeholder="081-234-5678"></div>'+
-    '<div class="field"><label class="f" for="pf_addr">ที่อยู่จัดส่ง</label>'+
-    '<textarea id="pf_addr" rows="3">'+esc(S.user.addr)+'</textarea></div>'+
+    (function(){
+      if(!S.pfAddr) S.pfAddr = splitAddr(S.user.addr);
+      var a = S.pfAddr;
+      return '<div class="field"><label class="f" for="pf_a1">บ้านเลขที่ หมู่ ซอย ถนน</label>'+
+        '<input id="pf_a1" type="text" value="'+esc(a.line1)+'" placeholder="เช่น 142 หมู่ 2 ถนนพังโคน-วาริชภูมิ" '+
+        'oninput="savePfAddr(\'line1\', this.value)"></div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="f" for="pf_a2">ตำบล / แขวง</label>'+
+        '<input id="pf_a2" type="text" value="'+esc(a.sub)+'" placeholder="เช่น นาซอ" oninput="savePfAddr(\'sub\', this.value)"></div>'+
+        '<div class="field"><label class="f" for="pf_a3">อำเภอ / เขต</label>'+
+        '<input id="pf_a3" type="text" value="'+esc(a.dist)+'" placeholder="เช่น วานรนิวาส" oninput="savePfAddr(\'dist\', this.value)"></div>'+
+      '</div>'+
+      '<div class="row2">'+
+        '<div class="field"><label class="f" for="pf_a4">จังหวัด</label>'+
+        '<select id="pf_a4" onchange="savePfAddr(\'province\', this.value)">'+
+        '<option value="">เลือกจังหวัด</option>'+
+        PROVINCES.map(function(p){ return '<option'+(a.province===p[0]?' selected':'')+'>'+p[0]+'</option>'; }).join('')+
+        '</select></div>'+
+        '<div class="field"><label class="f" for="pf_a5">รหัสไปรษณีย์</label>'+
+        '<input id="pf_a5" type="text" inputmode="numeric" maxlength="5" value="'+esc(a.zip)+'" '+
+        'placeholder="เช่น 47120" oninput="savePfAddr(\'zip\', this.value.replace(/[^0-9]/g,\'\'))"></div>'+
+      '</div>'+
+      '<div class="note" style="margin-bottom:14px"><b>ที่อยู่ที่จะใช้จัดส่ง</b><br>'+
+      '<span id="pfAddrPreview">'+esc(joinAddr(a) || 'กรอกให้ครบเพื่อดูที่อยู่ที่จะใช้จัดส่ง')+'</span></div>';
+    })()+
     '<button class="btn" onclick="saveProfile()" '+(S.busy?'disabled':'')+'>บันทึกข้อมูล</button></div>'+
     '<div class="panel"><h3>เปลี่ยนรหัสผ่าน</h3>'+
     '<div class="field"><label class="f" for="pw1">รหัสผ่านใหม่</label>'+
@@ -3009,7 +3084,7 @@ function openAuth(mode, forAdmin){
     '<div id="msg_phone" class="fmsg">ใช้ยืนยันตัวตนตอนติดตามพัสดุ</div></div>'+
     '<div class="field"><label class="f" for="ra">ที่อยู่จัดส่ง</label>'+
     '<textarea id="ra" rows="2" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" oninput="regInput(\'addr\', this)"></textarea>'+
-    '<div id="msg_addr" class="fmsg"></div></div>'+
+    '<div id="msg_addr" class="fmsg">กรอกคร่าว ๆ ก่อนได้ แยกเป็นช่อง ๆ ให้ในหน้าข้อมูลส่วนตัวภายหลัง</div></div>'+
     '<div class="field"><label class="f" for="rp">รหัสผ่าน</label>'+
     '<div class="pwwrap"><input id="rp" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" oninput="regInput(\'pass\', this)">'+
     '<button type="button" class="pwtog" onclick="togglePw(\'rp\', this)">แสดง</button></div>'+
