@@ -27,7 +27,7 @@
 :root{
   --forest:#0F2E23;
   --forest-2:#174534;
-  --leaf:#3C8C5B;
+  --leaf:#2F7A4C;
   --leaf-soft:#DCEBDF;
   --clay:#B4562F;
   --soil:#4A3B2A;
@@ -48,7 +48,7 @@
 html,body{margin:0;padding:0}
 body{
   font-family:var(--body); background:var(--paper); color:var(--ink);
-  font-size:15.5px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased;
 }
 img{max-width:100%}
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
@@ -64,13 +64,13 @@ a{color:inherit}
 
 /* ---------- Header ---------- */
 header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar{background:var(--forest);color:#CFE3D4;font-size:12.5px;letter-spacing:.03em}
+.topbar{background:var(--forest);color:#CFE3D4;font-size:13px;letter-spacing:.03em}
 .topbar .wrap{display:flex;justify-content:space-between;gap:12px;padding-top:6px;padding-bottom:6px;flex-wrap:wrap}
 .nav{display:flex;align-items:center;gap:18px;padding:12px 0;flex-wrap:nowrap}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
 .brand .mark{width:40px;height:40px;border-radius:12px;background:#EDF3EC;display:grid;place-items:center;overflow:hidden;flex-shrink:0}
 .brand .mark img{width:34px;height:34px;object-fit:contain;display:block}
-.brand b{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.brand b{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
 .brand small{display:block;font-size:10.5px;letter-spacing:.22em;color:var(--ink-2);text-transform:uppercase;font-family:var(--mono)}
 .navlinks{display:flex;gap:2px;margin-left:6px;flex-wrap:nowrap}
 .navlinks button{background:none;border:0;padding:8px 10px;border-radius:9px;font-weight:500;color:var(--ink-2);white-space:nowrap}
@@ -87,15 +87,15 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
 .sgimg{width:40px;height:40px;border-radius:8px;background:#EDF3EC;overflow:hidden;flex-shrink:0;display:grid;place-items:center}
 .sgimg svg{width:90%;height:90%}
 .sgtxt{display:grid;min-width:0}
-.sgtxt b{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sgtxt b{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sgtxt small{font-size:12px;color:var(--ink-2)}
 .sgall{width:100%;background:none;border:0;border-top:1px solid var(--line);margin-top:4px;padding:10px;
-  font-size:13.5px;font-weight:600;color:var(--forest)}
+  font-size:13px;font-weight:600;color:var(--forest)}
 .sgall:hover{background:var(--leaf-soft)}
 .searchbox input{border:0;background:none;outline:none;width:100%}
 .iconbtn{position:relative;background:var(--card);border:1px solid var(--line);border-radius:11px;width:42px;height:42px;display:grid;place-items:center}
 .iconbtn:hover{border-color:var(--leaf)}
-.badge{position:absolute;top:-6px;right:-6px;background:var(--clay);color:#fff;font-size:11px;min-width:19px;height:19px;border-radius:999px;display:grid;place-items:center;padding:0 5px;font-family:var(--mono)}
+.badge{position:absolute;top:-6px;right:-6px;background:var(--clay);color:#fff;font-size:12px;min-width:19px;height:19px;border-radius:999px;display:grid;place-items:center;padding:0 5px;font-family:var(--mono)}
 .menu-toggle{display:none}
 .mobonly{display:none}
 .acctwrap{position:relative}
@@ -103,10 +103,10 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
   border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);padding:6px;z-index:80;display:none}
 .acctmenu.open{display:block}
 .acctmenu button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
-  background:none;border:0;text-align:left;padding:10px 12px;border-radius:9px;font-size:14px;font-weight:500}
+  background:none;border:0;text-align:left;padding:10px 12px;border-radius:9px;font-size:15px;font-weight:500}
 .acctmenu button:hover{background:var(--leaf-soft);color:var(--forest)}
 .acctmenu .who{padding:10px 12px 8px;border-bottom:1px solid var(--line);margin-bottom:4px}
-.acctmenu .who b{display:block;font-size:14px}
+.acctmenu .who b{display:block;font-size:15px}
 .acctmenu .who span{font-size:12px;color:var(--ink-2)}
 .acctmenu .danger{color:var(--danger)}
 .acctmenu .danger:hover{background:#F8DFDC;color:var(--danger)}
@@ -119,14 +119,17 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
 .btn.leaf{background:var(--leaf)}
 .btn.clay{background:var(--clay)}
 .btn.danger{background:var(--danger)}
-.btn.sm{padding:7px 12px;font-size:13.5px;border-radius:9px}
+.btn.sm{padding:10px 14px;font-size:13px;border-radius:10px;min-height:40px}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 
 /* ---------- Hero ---------- */
 .hero{background:var(--forest);color:#F1F6EF;border-radius:20px;margin:22px auto 0;position:relative;overflow:hidden}
 .hero .inner{display:grid;grid-template-columns:1.05fr .95fr;gap:0;align-items:stretch;min-height:372px}
 .hero .herocopy{padding:44px 10px 44px 46px;align-self:center;max-width:52ch}
-.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:#8FBF9F}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#4E7A5E;font-weight:600}
+/* บนพื้นเขียวเข้มต้องใช้สีอ่อน ไม่งั้นอ่านไม่ออก */
+.hero .eyebrow, .adminwrap .eyebrow, .admin .eyebrow, .authside .eyebrow,
+.promo .eyebrow, footer .eyebrow{color:#A8D4B6}
 .hero h1{font-family:var(--display);font-size:clamp(32px,4.6vw,52px);line-height:1.38;margin:10px 0 16px;font-weight:600}
 .hero h1 em{font-style:italic;color:#9AD3AC}
 .hero p{color:#BFD7C6;max-width:44ch;margin:0 0 26px}
@@ -139,13 +142,13 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(244,246,241,.92);bac
   background:linear-gradient(90deg,var(--forest) 0%,rgba(15,46,35,.55) 14%,rgba(15,46,35,0) 42%)}
 .herostats{display:flex;gap:26px;border-top:1px solid rgba(255,255,255,.14);padding:14px 46px;flex-wrap:wrap}
 .herostats div{font-size:13px;color:#A8C6B2}
-.herostats b{display:block;font-family:var(--display);font-size:20px;color:#fff;letter-spacing:.4px;line-height:1.5}
+.herostats b{display:block;font-family:var(--display);font-size:21px;color:#fff;letter-spacing:.4px;line-height:1.5}
 
 /* ---------- Sections ---------- */
 section{padding:44px 0}
 .sechead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
 .sechead h2{font-family:var(--display);font-size:30px;font-weight:600;margin:6px 0 0;line-height:1.45}
-.sechead p{margin:4px 0 0;color:var(--ink-2);font-size:14px}
+.sechead p{margin:4px 0 0;color:var(--ink-2);font-size:15px}
 
 /* ---------- Product grid / plant tag card ---------- */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:18px}
@@ -157,12 +160,12 @@ section{padding:44px 0}
 .pcard .thumb svg{width:74%;height:74%}
 .pacts{position:absolute;top:10px;right:10px;display:grid;gap:7px;opacity:0;transform:translateX(10px);transition:.22s;z-index:2}
 .pcard:hover .pacts, .pcard:focus-within .pacts{opacity:1;transform:none}
-.act{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.94);
+.act{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.96);
   display:grid;place-items:center;font-size:15px;color:var(--ink);backdrop-filter:blur(4px);transition:.15s}
 .act:hover{background:var(--forest);color:#fff;border-color:var(--forest)}
 .act.on{background:var(--forest);color:#fff;border-color:var(--forest)}
 .quickadd{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;background:var(--forest);color:#fff;border:0;
-  border-radius:10px;padding:11px;font-weight:600;font-size:14px;opacity:0;transform:translateY(12px);transition:.22s}
+  border-radius:10px;padding:11px;font-weight:600;font-size:15px;opacity:0;transform:translateY(12px);transition:.22s}
 .pcard:hover .quickadd, .pcard:focus-within .quickadd{opacity:1;transform:none}
 .quickadd:hover{background:var(--forest-2)}
 .quickadd:disabled{background:var(--ink-2);cursor:not-allowed}
@@ -174,45 +177,45 @@ section{padding:44px 0}
 }
 .faq{border-bottom:1px solid var(--line);padding:14px 0}
 .faq:last-of-type{border-bottom:0}
-.faq summary{font-weight:600;font-size:15.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary{font-weight:600;font-size:15px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary:after{content:'+';font-family:var(--mono);color:var(--leaf);font-size:19px}
+.faq summary:after{content:'+';font-family:var(--mono);color:var(--leaf);font-size:21px}
 .faq[open] summary:after{content:'−'}
-.faq p{margin:9px 0 0;color:var(--ink-2);font-size:14.5px}
-.ribbon{position:absolute;top:10px;left:10px;background:var(--clay);color:#fff;font-size:11px;padding:3px 9px;border-radius:6px;font-weight:600;letter-spacing:.02em}
+.faq p{margin:9px 0 0;color:var(--ink-2);font-size:15px}
+.ribbon{position:absolute;top:10px;left:10px;background:var(--clay);color:#fff;font-size:12px;padding:3px 9px;border-radius:6px;font-weight:600;letter-spacing:.02em}
 .ribbon.out{background:var(--ink-2)}
 .ribbon.cartmark{background:var(--forest)}
 .stockline{font-size:12px;color:var(--ink-2);margin-top:2px}
 .stockline.low{color:var(--clay);font-weight:600}
 .pbody{padding:13px 14px 15px;display:flex;flex-direction:column;gap:6px;flex:1}
-.sku{font-family:var(--mono);font-size:11px;color:#8A9A90;letter-spacing:.06em}
-.pname{font-weight:600;line-height:1.35;font-size:15.5px;cursor:pointer}
+.sku{font-family:var(--mono);font-size:12px;color:#5C6E64;letter-spacing:.05em}
+.pname{font-weight:600;line-height:1.35;font-size:15px;cursor:pointer}
 .pname:hover{color:var(--leaf)}
 .sci{font-family:var(--display);font-style:italic;font-size:13px;color:var(--ink-2);margin-top:-3px}
 /* signature: plant care tag */
 .tag{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
-.chip{font-size:11.5px;background:var(--leaf-soft);color:#2C6142;border-radius:5px;padding:2px 7px;display:inline-flex;align-items:center;gap:4px;
+.chip{font-size:12px;background:var(--leaf-soft);color:#2C6142;border-radius:5px;padding:2px 7px;display:inline-flex;align-items:center;gap:4px;
   clip-path:polygon(6px 0,100% 0,100% 100%,6px 100%,0 50%)}
 .chip.soil{background:#EFE7DA;color:#6B573D}
 .price{font-family:var(--display);font-size:21px;font-weight:600;margin-top:auto;padding-top:6px;letter-spacing:.6px}
-.price s{font-family:var(--body);font-size:13px;color:#98A79E;font-weight:400;margin-left:6px}
+.price s{font-family:var(--body);font-size:13px;color:#5C6E64;font-weight:400;margin-left:6px}
 .pact{display:flex;gap:7px;margin-top:8px}
-.pact .btn{flex:1;padding:9px 10px;font-size:13.5px}
+.pact .btn{flex:1;padding:9px 10px;font-size:13px}
 .cmpbtn{border:1px solid var(--line);background:var(--card);border-radius:9px;width:38px;display:grid;place-items:center;font-size:13px}
 .cmpbtn.on{background:var(--forest);color:#fff;border-color:var(--forest)}
-.stars{color:#D9A521;font-size:13px;letter-spacing:1px}
-.rate{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);flex-wrap:wrap}
-.sold{background:var(--leaf-soft);color:#2C6142;font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:5px}
+.stars{color:#9A6F06;font-size:13px;letter-spacing:1px}
+.rate{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+.sold{background:var(--leaf-soft);color:#2C6142;font-size:12px;font-weight:600;padding:2px 7px;border-radius:5px}
 
 /* ---------- Filters ---------- */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:20px}
-.pill{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 14px;font-size:13.5px}
+.pill{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:10px 16px;font-size:13px;min-height:44px}
 .pill.on{background:var(--forest);color:#fff;border-color:var(--forest)}
-.pill.sm{padding:5px 11px;font-size:12.5px}
+.pill.sm{padding:5px 11px;font-size:13px}
 .pill.clearf{border-color:var(--clay);color:var(--clay);background:#FDF2ED}
 .pill.clearf:hover{background:var(--clay);color:#fff}
 .filterbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-10px 0 18px;padding:0 2px}
-.flabel{font-size:12.5px;color:var(--ink-2);font-weight:600}
+.flabel{font-size:13px;color:var(--ink-2);font-weight:600}
 .fdiv{width:1px;height:18px;background:var(--line);margin:0 4px}
 select,input[type=text],input[type=email],input[type=tel],input[type=number],input[type=password],textarea{
   border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;outline:none;width:100%}
@@ -223,8 +226,8 @@ label.f{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin:0
 
 /* ---------- Panels / tables ---------- */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
-.panel h3{font-family:var(--display);font-size:20px;margin:0 0 14px;font-weight:600;line-height:1.5}
-table{width:100%;border-collapse:collapse;font-size:14px}
+.panel h3{font-family:var(--display);font-size:21px;margin:0 0 14px;font-weight:600;line-height:1.5}
+table{width:100%;border-collapse:collapse;font-size:15px}
 th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);border-bottom:1px solid var(--line);padding:9px 8px;font-weight:600;white-space:nowrap}
 td{border-bottom:1px solid #EEF2EC;padding:10px 8px;vertical-align:middle}
 tr:last-child td{border-bottom:0}
@@ -242,20 +245,20 @@ tr:last-child td{border-bottom:0}
 .cartline{display:grid;grid-template-columns:78px 1fr auto;gap:14px;padding:14px 0;border-bottom:1px solid #EEF2EC;align-items:center}
 .cartline .mini{background:#EDF3EC;border-radius:10px;aspect-ratio:1;display:grid;place-items:center}
 .qty{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
-.qty button{background:var(--paper);border:0;width:30px;height:32px;font-size:16px}
-.qty span{width:38px;display:grid;place-items:center;font-family:var(--mono);font-size:14px}
-.sum{display:flex;justify-content:space-between;padding:7px 0;font-size:14.5px}
-.sum.total{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:19px;font-family:var(--display);font-weight:600;letter-spacing:.6px}
+.qty button{background:var(--paper);border:0;width:42px;height:42px;font-size:17px}
+.qty span{width:38px;display:grid;place-items:center;font-family:var(--mono);font-size:15px}
+.sum{display:flex;justify-content:space-between;padding:7px 0;font-size:15px}
+.sum.total{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:21px;font-family:var(--display);font-weight:600;letter-spacing:.6px}
 .steps{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
-.step{flex:1;min-width:130px;border:1px solid var(--line);background:var(--card);border-radius:11px;padding:10px 13px;font-size:13.5px;color:var(--ink-2)}
-.step b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#9AAAA0}
+.step{flex:1;min-width:130px;border:1px solid var(--line);background:var(--card);border-radius:11px;padding:10px 13px;font-size:13px;color:var(--ink-2)}
+.step b{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:#9AAAA0}
 .step.on{background:var(--forest);color:#fff;border-color:var(--forest)}
 .step.on b{color:#8FBF9F}
 .paylist{display:grid;gap:10px}
 .payopt{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;padding:13px;cursor:pointer;background:var(--card)}
 .payopt.on{border-color:var(--leaf);background:#F3F9F4;box-shadow:inset 0 0 0 1px var(--leaf)}
 .payopt input{margin-top:4px;accent-color:var(--leaf)}
-.payopt small{color:var(--ink-2);display:block;font-size:12.5px}
+.payopt small{color:var(--ink-2);display:block;font-size:13px}
 .qrbox{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;margin-top:16px;
   border:1px solid var(--line);border-radius:14px;padding:16px;background:#F7FAF6}
 .qrimg{width:190px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;place-items:center}
@@ -264,10 +267,10 @@ tr:last-child td{border-bottom:0}
 .pphead{background:#1B4A6B;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.18em;
   padding:7px 0;border-radius:8px 8px 0 0}
 .ppcard canvas{display:block;margin:10px auto 4px;max-width:100%;height:auto}
-.ppfoot{font-size:11.5px;color:var(--ink-2);padding-bottom:6px}
-.qrmiss{font-size:12.5px;color:var(--danger);text-align:center;padding:34px 8px;line-height:1.6}
-.qrinfo h4{font-family:var(--display);font-size:19px;margin:4px 0 10px;font-weight:600;line-height:1.4}
-.qrinfo .sum{padding:5px 0;font-size:14px}
+.ppfoot{font-size:12px;color:var(--ink-2);padding-bottom:6px}
+.qrmiss{font-size:13px;color:var(--danger);text-align:center;padding:34px 8px;line-height:1.6}
+.qrinfo h4{font-family:var(--display);font-size:21px;margin:4px 0 10px;font-weight:600;line-height:1.4}
+.qrinfo .sum{padding:5px 0;font-size:15px}
 @media (max-width:620px){ .qrbox{grid-template-columns:1fr} .qrimg{width:100%;max-width:230px;margin:0 auto} }
 
 /* ---------- Tracking timeline ---------- */
@@ -275,8 +278,8 @@ tr:last-child td{border-bottom:0}
 .timeline li{position:relative;padding:0 0 18px 18px}
 .timeline li:before{content:"";position:absolute;left:-31px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--card);border:3px solid var(--line)}
 .timeline li.done:before{background:var(--leaf);border-color:var(--leaf-soft)}
-.timeline b{display:block;font-size:14.5px}
-.timeline small{color:var(--ink-2);font-family:var(--mono);font-size:11.5px}
+.timeline b{display:block;font-size:15px}
+.timeline small{color:var(--ink-2);font-family:var(--mono);font-size:12px}
 
 /* ---------- Modal ---------- */
 .overlay{position:fixed;inset:0;background:rgba(15,46,35,.5);backdrop-filter:blur(3px);z-index:100;display:grid;place-items:center;padding:18px;overflow:auto}
@@ -290,16 +293,16 @@ tr:last-child td{border-bottom:0}
 .authside ul{list-style:none;margin:0;padding:0;display:grid;gap:13px}
 .authside li{display:grid;gap:2px;padding-left:24px;position:relative;font-size:13px}
 .authside li:before{content:'✓';position:absolute;left:0;top:0;color:#9AD3AC;font-weight:700}
-.authside li b{color:#fff;font-size:14px;font-weight:600}
+.authside li b{color:#fff;font-size:15px;font-weight:600}
 .authside li span{color:#8FAF9A;line-height:1.5}
 .authform{padding:26px 28px;max-height:88vh;overflow:auto}
-.fmsg{font-size:12.5px;color:var(--ink-2);margin-top:5px;min-height:16px}
+.fmsg{font-size:13px;color:var(--ink-2);margin-top:5px;min-height:16px}
 .fmsg.bad{color:var(--danger)}
 .fmsg.good{color:var(--leaf)}
 input.inv,textarea.inv{border-color:var(--danger)}
 .pwwrap{position:relative}
 .pwtog{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;
-  color:var(--ink-2);font-size:12.5px;padding:4px 6px;font-weight:600}
+  color:var(--ink-2);font-size:13px;padding:4px 6px;font-weight:600}
 .pwtog:hover{color:var(--forest)}
 .pwbar{height:5px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:8px}
 .pwfill{display:block;height:100%;width:0;transition:width .25s;background:var(--danger)}
@@ -315,51 +318,51 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .galthumb:hover{border-color:var(--leaf)}
 .galthumb.on{border-color:var(--forest)}
 .galthumb img{width:100%;height:100%;object-fit:cover;display:block}
-.spec{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px;margin:14px 0}
+.spec{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px;margin:14px 0}
 .spec dt{color:var(--ink-2)}
 .spec dd{margin:0;font-weight:500}
 .review{border-top:1px solid var(--line);padding:11px 0}
-.review b{font-size:14px}
+.review b{font-size:15px}
 .relgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .relitem{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:11px;
   padding:8px;cursor:pointer;transition:.15s;background:var(--card)}
 .relitem:hover{border-color:var(--leaf);transform:translateY(-2px)}
 .relimg{width:54px;height:54px;background:#EDF3EC;border-radius:8px;flex-shrink:0;overflow:hidden;display:grid;place-items:center}
 .relimg svg{width:88%;height:88%}
-.verified{display:inline-block;background:var(--leaf-soft);color:#2C6142;font-size:11px;font-weight:600;
+.verified{display:inline-block;background:var(--leaf-soft);color:#2C6142;font-size:12px;font-weight:600;
   padding:2px 8px;border-radius:5px;vertical-align:middle}
 
 /* ---------- Compare ---------- */
 .cmptable td,.cmptable th{border-bottom:1px solid var(--line);padding:12px 10px}
-.cmptable .h{background:#EDF3EC;font-weight:600;width:150px;font-size:13.5px}
+.cmptable .h{background:#EDF3EC;font-weight:600;width:150px;font-size:13px}
 .cmpthumb{background:#EDF3EC;border-radius:12px;padding:10px;display:grid;place-items:center;margin-bottom:8px}
 .cmpthumb svg{width:100px;height:100px}
 
 /* ---------- Admin ---------- */
 .admin{background:var(--forest);color:#E7F0E8;border-radius:20px;padding:22px 24px;margin-bottom:20px}
 .admin h2{font-family:var(--display);margin:4px 0 2px;font-size:26px;font-weight:600;line-height:1.45}
-.admin p{margin:0;color:#9DBFA9;font-size:13.5px}
+.admin p{margin:0;color:#9DBFA9;font-size:13px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0}
-.tabs button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:14px;font-weight:500}
+.tabs button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:15px;font-weight:500}
 .tabs button.on{background:var(--forest);color:#fff;border-color:var(--forest)}
 .tabbadge{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-left:7px;
-  background:var(--clay);color:#fff;border-radius:999px;font-size:11px;font-family:var(--mono);vertical-align:middle}
+  background:var(--clay);color:#fff;border-radius:999px;font-size:12px;font-family:var(--mono);vertical-align:middle}
 .cphint{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-  background:#F3F9F4;border:1px dashed var(--leaf);border-radius:11px;padding:10px 12px;margin:10px 0;font-size:13.5px}
+  background:#F3F9F4;border:1px dashed var(--leaf);border-radius:11px;padding:10px 12px;margin:10px 0;font-size:13px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
-.kpi small{color:var(--ink-2);font-size:12.5px;display:block}
+.kpi small{color:var(--ink-2);font-size:13px;display:block}
 .kpi b{font-family:var(--display);font-size:27px;font-weight:600;display:block;line-height:1.4;letter-spacing:.6px}
 .bar{height:7px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
 .bar i{display:block;height:100%;background:var(--leaf)}
 .bar i.over{background:var(--danger)}
 
 /* ---------- Misc ---------- */
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(140%);background:var(--forest);color:#fff;padding:12px 20px;border-radius:12px;z-index:200;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);transition:.32s;font-size:14.5px;max-width:90vw;text-align:center}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(140%);background:var(--forest);color:#fff;padding:12px 20px;border-radius:12px;z-index:200;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);transition:.32s;font-size:15px;max-width:90vw;text-align:center}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .empty{text-align:center;padding:50px 20px;color:var(--ink-2)}
 .empty svg{width:96px;opacity:.6;margin-bottom:10px}
-.note{background:#F3F9F4;border:1px solid #CBE3D2;border-radius:11px;padding:12px 14px;font-size:13.5px;color:#2C6142}
+.note{background:#F3F9F4;border:1px solid #CBE3D2;border-radius:11px;padding:12px 14px;font-size:13px;color:#2C6142}
 .note.warn{background:#FDF6E3;border-color:#EBD9A6;color:#7A5F11}
 .feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
 .wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
@@ -370,8 +373,8 @@ input.inv,textarea.inv{border-color:var(--danger)}
   line-height:0;vertical-align:-8px;margin-right:2px}
 .rvcard figcaption{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;
   border-top:1px solid var(--line);padding-top:12px}
-.rvcard figcaption b{font-size:14px}
-.rvcard figcaption small{font-size:12.5px;color:var(--ink-2);width:100%}
+.rvcard figcaption b{font-size:15px}
+.rvcard figcaption small{font-size:13px;color:var(--ink-2);width:100%}
 .cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
 .catcard{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
   border-radius:var(--radius);overflow:hidden;text-align:left;padding:0;transition:.2s;cursor:pointer}
@@ -382,34 +385,34 @@ input.inv,textarea.inv{border-color:var(--danger)}
 .catimg img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
 .catcard:hover .catimg img{transform:scale(1.06)}
 .cattext{display:grid;gap:2px;padding:14px 16px 16px}
-.cattext b{font-size:16px;font-weight:600;color:var(--ink)}
+.cattext b{font-size:17px;font-weight:600;color:var(--ink)}
 .cattext small{font-size:13px;color:var(--ink-2)}
 .feat div{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
 .feat b{display:block;font-family:var(--display);font-size:17px;margin:10px 0 4px;font-weight:600;line-height:1.5}
-.feat p{margin:0;font-size:13.5px;color:var(--ink-2)}
-footer{background:var(--forest);color:#B9D2C1;margin-top:40px;padding:38px 0 26px;font-size:14px}
+.feat p{margin:0;font-size:13px;color:var(--ink-2)}
+footer{background:var(--forest);color:#B9D2C1;margin-top:40px;padding:38px 0 26px;font-size:15px}
 footer .cols{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1.1fr;gap:22px}
 footer h4{color:#fff;font-family:var(--display);font-size:17px;margin:0 0 10px;font-weight:600;line-height:1.5}
-footer a{display:block;color:#B9D2C1;text-decoration:none;padding:3px 0;font-size:13.5px}
+footer a{display:block;color:#B9D2C1;text-decoration:none;padding:3px 0;font-size:13px}
 footer a:hover{color:#fff}
-.copy{border-top:1px solid rgba(255,255,255,.13);margin-top:26px;padding-top:16px;font-size:12.5px;color:#8CAE97;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.copy{border-top:1px solid rgba(255,255,255,.13);margin-top:26px;padding-top:16px;font-size:13px;color:#8CAE97;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
 .pimg{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .cookiebar{position:fixed;left:16px;right:16px;bottom:16px;z-index:150;background:var(--forest);color:#DCEBDF;
   border-radius:16px;padding:16px 20px;display:flex;gap:18px;justify-content:space-between;align-items:center;
-  flex-wrap:wrap;box-shadow:0 18px 40px -18px rgba(0,0,0,.6);font-size:13.5px;max-width:940px;margin:0 auto}
+  flex-wrap:wrap;box-shadow:0 18px 40px -18px rgba(0,0,0,.6);font-size:13px;max-width:940px;margin:0 auto}
 .cookiebar span{color:#A8C6B2}
 .cookiebar .btn.ghost{border-color:rgba(255,255,255,.32);color:#fff}
 .promo{background:linear-gradient(100deg,var(--clay),#8E4022);color:#fff;border-radius:14px;padding:14px 20px;
   display:flex;gap:16px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-.promo h3{font-family:var(--display);font-size:19px;margin:0 0 2px;font-weight:600;line-height:1.4}
-.promo p{margin:0;font-size:13px;color:#FBE6DC}
+.promo h3{font-family:var(--display);font-size:21px;margin:0 0 2px;font-weight:600;line-height:1.4}
+.promo p{margin:0;font-size:13px;color:#FFF3EC}
 .promo .code{font-family:var(--mono);background:rgba(255,255,255,.16);border:1px dashed rgba(255,255,255,.5);
   border-radius:9px;padding:7px 14px;font-size:17px;letter-spacing:.12em;display:inline-block;margin-top:8px}
 .nl{background:var(--forest);color:#CFE3D4;border-radius:18px;padding:26px;display:grid;
   grid-template-columns:1.3fr 1fr;gap:22px;align-items:center;margin-top:12px}
-.nl h3{font-family:var(--display);font-size:22px;color:#fff;margin:0 0 6px;font-weight:600;line-height:1.4}
-.nl p{margin:0;font-size:13.5px}
+.nl h3{font-family:var(--display);font-size:21px;color:#fff;margin:0 0 6px;font-weight:600;line-height:1.4}
+.nl p{margin:0;font-size:13px}
 .nl .row{display:flex;gap:9px}
 .nl input{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:#fff}
 .nl input::placeholder{color:#8FAF9A}
@@ -422,19 +425,19 @@ footer a:hover{color:#fff}
 @keyframes sp{to{transform:rotate(360deg)}}
 #busy{position:fixed;top:0;left:0;height:3px;width:0;background:var(--leaf);z-index:300;transition:width .25s;opacity:0}
 #busy.on{width:88%;opacity:1;transition:width 8s cubic-bezier(.1,.8,.2,1)}
-input[type=file]{border:1px dashed var(--line);background:var(--card);border-radius:10px;padding:9px 12px;width:100%;font-size:13.5px}
+input[type=file]{border:1px dashed var(--line);background:var(--card);border-radius:10px;padding:9px 12px;width:100%;font-size:13px}
 input[type=file]::file-selector-button{border:0;background:var(--forest);color:#fff;border-radius:7px;padding:5px 11px;margin-right:10px;font-family:inherit;font-size:13px;cursor:pointer}
 
 /* จอกลาง: ย่อโลโก้และซ่อนคำบรรยายใต้ชื่อร้าน เพื่อให้เมนูอยู่บรรทัดเดียว */
 @media (max-width:1150px){
   .brand small{display:none}
-  .brand b{font-size:20px}
-  .navlinks button{padding:8px 8px;font-size:14px}
+  .brand b{font-size:21px}
+  .navlinks button{padding:8px 8px;font-size:15px}
   .nav{gap:12px}
 }
 @media (max-width:960px){
   .searchwrap{flex:0 1 190px}
-  .navlinks button{padding:8px 6px;font-size:13.5px}
+  .navlinks button{padding:8px 6px;font-size:13px}
 }
 @media (max-width:900px){
   .authwrap{grid-template-columns:1fr}
@@ -468,7 +471,7 @@ input[type=file]::file-selector-button{border:0;background:var(--forest);color:#
 .slipdoc{background:#fff;color:#12241D}
 .sliphead{display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid var(--forest);padding-bottom:12px;flex-wrap:wrap}
 .slipbrand{font-family:var(--display);font-size:26px;font-weight:700;color:var(--forest);line-height:1.3}
-.slipfoot{border-top:1px dashed var(--line);margin-top:18px;padding-top:10px;font-size:12.5px;color:var(--ink-2);text-align:center}
+.slipfoot{border-top:1px dashed var(--line);margin-top:18px;padding-top:10px;font-size:13px;color:var(--ink-2);text-align:center}
 
 /* ---------- การพิมพ์เอกสาร ---------- */
 @media print{
@@ -1097,9 +1100,9 @@ function openEditShipping(code){
     '<div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Edit Delivery Info</div>'+
-    '<h2 style="font-family:var(--display);font-size:23px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
+    '<h2 style="font-family:var(--display);font-size:21px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
       'แก้ไขข้อมูลจัดส่ง '+esc(o.code)+'</h2>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:0 0 14px">แก้ได้เฉพาะก่อนบันทึกการจัดส่ง ระบบจะบันทึกไว้ในไทม์ไลน์และประวัติการทำงาน</p>'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:0 0 14px">แก้ได้เฉพาะก่อนบันทึกการจัดส่ง ระบบจะบันทึกไว้ในไทม์ไลน์และประวัติการทำงาน</p>'+
     '<div class="field"><label class="f" for="es_name">ชื่อผู้รับ</label>'+
     '<input id="es_name" type="text" value="'+esc(o.receiver_name)+'"></div>'+
     '<div class="field"><label class="f" for="es_phone">เบอร์โทรศัพท์</label>'+
@@ -1296,8 +1299,8 @@ function openUnsubscribe(){
     '<div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">PDPA · ถอนความยินยอม</div>'+
-    '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 6px;font-weight:600;line-height:1.45">ยกเลิกรับข่าวสาร</h2>'+
-    '<p style="color:var(--ink-2);font-size:14px;margin:0 0 14px">'+
+    '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 6px;font-weight:600;line-height:1.45">ยกเลิกรับข่าวสาร</h2>'+
+    '<p style="color:var(--ink-2);font-size:15px;margin:0 0 14px">'+
     'กรอกอีเมลที่เคยสมัครไว้ ระบบจะนำออกจากรายชื่อทันที '+
     'ท่านมีสิทธิ์ถอนความยินยอมได้ตลอดเวลาตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</p>'+
     '<div class="field"><label class="f" for="unsubEmail">อีเมล</label>'+
@@ -1329,9 +1332,9 @@ function openWaitlist(pid){
     '<div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Back in stock</div>'+
-    '<h2 style="font-family:var(--display);font-size:23px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
+    '<h2 style="font-family:var(--display);font-size:21px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
       'แจ้งเตือนเมื่อ “'+esc(p.name)+'” กลับมามีของ</h2>'+
-    '<p style="color:var(--ink-2);font-size:14px;margin:0 0 14px">'+
+    '<p style="color:var(--ink-2);font-size:15px;margin:0 0 14px">'+
     'ทิ้งอีเมลไว้ ร้านจะติดต่อกลับทันทีที่ของเข้า ใช้อีเมลนี้เพื่อการแจ้งเตือนสินค้าชิ้นนี้เท่านั้น '+
     'ไม่ได้นำไปใช้ส่งโฆษณา</p>'+
     '<div class="field"><label class="f" for="wlEmail">อีเมลติดต่อกลับ</label>'+
@@ -1362,18 +1365,18 @@ function openWaitlistDetail(pid, name){
     '<div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Waitlist</div>'+
-    '<h2 style="font-family:var(--display);font-size:22px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
+    '<h2 style="font-family:var(--display);font-size:21px;margin:6px 0 6px;font-weight:600;line-height:1.45">'+
       'ผู้รอสินค้า “'+esc(name)+'” ('+rows.length+' ราย)</h2>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:0 0 12px">'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:0 0 12px">'+
     'คัดลอกอีเมลไปส่งแจ้งเตือน แล้วกดทำเครื่องหมายว่าติดต่อแล้ว เพื่อไม่ให้ตัวเลขค้าง</p>'+
     (rows.length
       ? '<div class="tblwrap" style="max-height:44vh;overflow:auto"><table><tr><th>อีเมล</th><th>ลงชื่อเมื่อ</th></tr>'+
         rows.map(function(w){
-          return '<tr><td>'+esc(w.email)+'</td><td class="mono" style="font-size:12.5px">'+esc(thaiDate(w.created_at))+'</td></tr>';
+          return '<tr><td>'+esc(w.email)+'</td><td class="mono" style="font-size:13px">'+esc(thaiDate(w.created_at))+'</td></tr>';
         }).join('')+'</table></div>'+
         '<div class="field" style="margin-top:12px"><label class="f" for="wlEmails">อีเมลทั้งหมด (คัดลอกไปวางในช่องผู้รับ)</label>'+
         '<textarea id="wlEmails" rows="2" readonly style="font-size:13px">'+esc(emails)+'</textarea></div>'
-      : '<p style="color:var(--ink-2);font-size:14px">ไม่มีรายชื่อที่ยังรออยู่</p>')+
+      : '<p style="color:var(--ink-2);font-size:15px">ไม่มีรายชื่อที่ยังรออยู่</p>')+
     '<div style="display:flex;gap:10px;margin-top:6px">'+
       '<button class="btn ghost" onclick="closeModal()">ปิด</button>'+
       (rows.length? '<button class="btn ghost" onclick="copyWaitlistEmails()">คัดลอกอีเมล</button>'+
@@ -1587,7 +1590,7 @@ function askCancelOrder(code){
   $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Cancel Order</div>'+
-    '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 8px;font-weight:600;line-height:1.45">ยกเลิกคำสั่งซื้อ '+esc(code)+'</h2>'+
+    '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 8px;font-weight:600;line-height:1.45">ยกเลิกคำสั่งซื้อ '+esc(code)+'</h2>'+
     '<div class="note">ยกเลิกได้เพราะร้านยังไม่เริ่มดำเนินการ ระบบจะคืนสินค้าเข้าคลังและคืนสิทธิ์การใช้คูปองให้อัตโนมัติ</div>'+
     '<div class="field" style="margin-top:14px"><label class="f" for="cancelWhy">เหตุผล (ไม่บังคับ)</label>'+
     '<select id="cancelWhy"><option>เปลี่ยนใจ</option><option>สั่งผิดรายการ</option><option>สั่งผิดจำนวน</option>'+
@@ -1769,8 +1772,8 @@ async function forgotPassword(){
 function openResetPassword(){
   $('modalRoot').innerHTML='<div class="overlay"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<div class="eyebrow">Reset Password</div>'+
-    '<h2 style="font-family:var(--display);font-size:25px;margin:6px 0 6px;font-weight:600;line-height:1.45">ตั้งรหัสผ่านใหม่</h2>'+
-    '<p style="color:var(--ink-2);font-size:14px;margin:0 0 16px">กรอกรหัสผ่านใหม่ที่ต้องการใช้ จากนั้นระบบจะพาเข้าสู่ระบบให้อัตโนมัติ</p>'+
+    '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 6px;font-weight:600;line-height:1.45">ตั้งรหัสผ่านใหม่</h2>'+
+    '<p style="color:var(--ink-2);font-size:15px;margin:0 0 16px">กรอกรหัสผ่านใหม่ที่ต้องการใช้ จากนั้นระบบจะพาเข้าสู่ระบบให้อัตโนมัติ</p>'+
     '<div class="field"><label class="f" for="np1">รหัสผ่านใหม่</label>'+
     '<input id="np1" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password"></div>'+
     '<div class="field"><label class="f" for="np2">ยืนยันรหัสผ่านใหม่</label>'+
@@ -1837,7 +1840,7 @@ function askDeleteAccount(){
   $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">PDPA · สิทธิขอให้ลบข้อมูล</div>'+
-    '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 10px;font-weight:600;line-height:1.45">ยืนยันการลบบัญชี</h2>'+
+    '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 10px;font-weight:600;line-height:1.45">ยืนยันการลบบัญชี</h2>'+
     '<div class="note warn">การลบบัญชีจะทำให้ชื่อ เบอร์โทร ที่อยู่ รีวิว และรายการโปรดของคุณถูกลบถาวร กู้คืนไม่ได้<br><br>'+
     'ข้อมูลคำสั่งซื้อจะถูกเก็บต่อในรูปแบบที่ระบุตัวบุคคลไม่ได้ ตามที่กฎหมายภาษีอากรกำหนดให้เก็บ 5 ปี</div>'+
     '<div class="field" style="margin-top:14px"><label class="f" for="delConfirm">พิมพ์คำว่า <b>ลบบัญชี</b> เพื่อยืนยัน</label>'+
@@ -2224,7 +2227,7 @@ function viewShop(){
   return '<div class="wrap"><section>'+
     '<div class="sechead"><div><div class="eyebrow">E-Catalog</div>'+
       '<h2>สินค้าทั้งหมด</h2><p>พบ '+list.length+' รายการ'+(S.q?' จากคำค้น “'+esc(S.q)+'”':'')+'</p></div>'+
-      '<div style="display:flex;gap:8px;align-items:center"><span style="font-size:13.5px;color:var(--ink-2)">เรียงตาม</span>'+
+      '<div style="display:flex;gap:8px;align-items:center"><span style="font-size:13px;color:var(--ink-2)">เรียงตาม</span>'+
       '<select style="width:auto" onchange="S.sort=this.value;render()">'+
       ['ใหม่ล่าสุด','ราคาต่ำ→สูง','ราคาสูง→ต่ำ','คะแนนรีวิว','ชื่อ ก-ฮ'].map(function(o){
         return '<option'+(S.sort===o?' selected':'')+'>'+o+'</option>';}).join('')+
@@ -2233,7 +2236,7 @@ function viewShop(){
     '<div class="toolbar">'+
       '<button class="pill'+(S.cat==='ทั้งหมด'?' on':'')+'" onclick="setFilter(\'cat\',\'ทั้งหมด\')">ทั้งหมด</button>'+
       CATS.map(function(c){return '<button class="pill'+(S.cat===c?' on':'')+'" onclick="setFilter(\'cat\',\''+c+'\')">'+c+'</button>';}).join('')+
-      '<div style="margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13.5px">'+
+      '<div style="margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px">'+
         '<label for="pr">ราคาไม่เกิน <b class="mono">฿'+baht(S.maxPrice)+'</b></label>'+
         '<input id="pr" type="range" min="90" max="1500" step="10" value="'+S.maxPrice+'" style="width:150px;accent-color:var(--leaf)" oninput="S.maxPrice=+this.value;render();document.getElementById(\'pr\').focus()">'+
       '</div>'+
@@ -2294,13 +2297,13 @@ function drawProduct(p, rv){
       '</div>'+
     '</div>'+
     '<div style="margin-top:22px">'+
-      '<h3 style="font-family:var(--display);font-size:20px;margin:0 0 6px;font-weight:600">รีวิวจากผู้ซื้อ</h3>'+
-      (rv===null ? '<p style="color:var(--ink-2);font-size:14px">กำลังโหลดรีวิว…</p>'
+      '<h3 style="font-family:var(--display);font-size:21px;margin:0 0 6px;font-weight:600">รีวิวจากผู้ซื้อ</h3>'+
+      (rv===null ? '<p style="color:var(--ink-2);font-size:15px">กำลังโหลดรีวิว…</p>'
         : (rv.length? rv.map(function(x){
             return '<div class="review"><b>'+esc(x.author_name)+'</b> <span class="stars">'+starRow(x.stars)+'</span>'+
-            '<div style="font-size:14px;color:var(--ink-2)">'+esc(x.body)+'</div>'+
+            '<div style="font-size:15px;color:var(--ink-2)">'+esc(x.body)+'</div>'+
             '<small class="mono" style="color:#9AAAA0">'+esc(thaiDate(x.created_at))+'</small></div>';}).join('')
-          : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีรีวิวสำหรับสินค้านี้ เป็นคนแรกที่แบ่งปันประสบการณ์ได้เลย</p>'))+
+          : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีรีวิวสำหรับสินค้านี้ เป็นคนแรกที่แบ่งปันประสบการณ์ได้เลย</p>'))+
       reviewBox(p)+
     '</div>'+ relatedBox(p) +'</div></div>';
 }
@@ -2349,7 +2352,7 @@ function viewCompare(){
       '<button class="btn" onclick="go(\'shop\')">ไปเลือกสินค้า</button></div></section></div>';
   }
   var rows=[
-    ['ราคา', function(p){ return '<b style="font-family:var(--display);font-size:19px;letter-spacing:.6px">฿'+baht(p.price)+'</b>'+(p.old_price>0?' <s style="color:#98A79E">฿'+baht(p.old_price)+'</s>':''); }],
+    ['ราคา', function(p){ return '<b style="font-family:var(--display);font-size:21px;letter-spacing:.6px">฿'+baht(p.price)+'</b>'+(p.old_price>0?' <s style="color:#98A79E">฿'+baht(p.old_price)+'</s>':''); }],
     ['หมวดหมู่', function(p){ return esc(p.category); }],
     ['ชื่อวิทยาศาสตร์', function(p){ return '<i>'+esc(p.sci_name)+'</i>'; }],
     ['ขนาด', function(p){ return esc(p.size_label); }],
@@ -2396,7 +2399,7 @@ function viewCart(){
         '<div style="margin-top:7px;display:flex;gap:8px;align-items:center">'+
           '<div class="qty"><button onclick="setQty('+p.id+',-1)" aria-label="ลดจำนวน">−</button><span>'+c.qty+'</span><button onclick="setQty('+p.id+',1)" aria-label="เพิ่มจำนวน">+</button></div>'+
           '<button class="btn sm ghost" onclick="delCart('+p.id+')">ลบ</button></div></div>'+
-        '<div style="text-align:right;font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:.6px">฿'+baht(p.price*c.qty)+'</div></div>';
+        '<div style="text-align:right;font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:.6px">฿'+baht(p.price*c.qty)+'</div></div>';
       }).join('')+
     '</div>'+
     '<div class="panel"><h3>สรุปคำสั่งซื้อ</h3>'+
@@ -2407,7 +2410,7 @@ function viewCart(){
       couponBox()+
       '<div class="sum total"><span>ยอดที่ต้องชำระ</span><span>฿'+baht(grandTotal())+'</span></div>'+
       '<button class="btn" style="width:100%;margin-top:14px" onclick="startCheckout()">ดำเนินการสั่งซื้อ</button>'+
-      '<p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin:10px 0 0">ระบบจะออกเลขที่คำสั่งซื้อและใบตอบรับให้ทันทีหลังยืนยัน</p>'+
+      '<p style="font-size:13px;color:var(--ink-2);text-align:center;margin:10px 0 0">ระบบจะออกเลขที่คำสั่งซื้อและใบตอบรับให้ทันทีหลังยืนยัน</p>'+
     '</div></div></section></div>';
 }
 
@@ -2433,10 +2436,93 @@ function stepBar(){
     return '<div class="step'+(S.step===i+1?' on':'')+'"><b>'+x[0]+'</b>'+x[1]+'</div>';}).join('')+'</div>';
 }
 function saveField(k,v){ S.checkout[k]=v; }
+
+/* ---------- จังหวัดและรหัสไปรษณีย์ 2 หลักแรก ใช้ตรวจว่ากรอกตรงกันหรือไม่ ---------- */
+var PROVINCES = [
+ ['กรุงเทพมหานคร','10'],['สมุทรปราการ','10'],['นนทบุรี','11'],['ปทุมธานี','12'],
+ ['พระนครศรีอยุธยา','13'],['อ่างทอง','14'],['ลพบุรี','15'],['สิงห์บุรี','16'],
+ ['ชัยนาท','17'],['สระบุรี','18'],['ชลบุรี','20'],['ระยอง','21'],['จันทบุรี','22'],
+ ['ตราด','23'],['ฉะเชิงเทรา','24'],['ปราจีนบุรี','25'],['นครนายก','26'],['สระแก้ว','27'],
+ ['นครราชสีมา','30'],['บุรีรัมย์','31'],['สุรินทร์','32'],['ศรีสะเกษ','33'],
+ ['อุบลราชธานี','34'],['ยโสธร','35'],['ชัยภูมิ','36'],['อำนาจเจริญ','37'],['บึงกาฬ','38'],
+ ['หนองบัวลำภู','39'],['ขอนแก่น','40'],['อุดรธานี','41'],['เลย','42'],['หนองคาย','43'],
+ ['มหาสารคาม','44'],['ร้อยเอ็ด','45'],['กาฬสินธุ์','46'],['สกลนคร','47'],['นครพนม','48'],
+ ['มุกดาหาร','49'],['เชียงใหม่','50'],['ลำพูน','51'],['ลำปาง','52'],['อุตรดิตถ์','53'],
+ ['แพร่','54'],['น่าน','55'],['พะเยา','56'],['เชียงราย','57'],['แม่ฮ่องสอน','58'],
+ ['นครสวรรค์','60'],['อุทัยธานี','61'],['กำแพงเพชร','62'],['ตาก','63'],['สุโขทัย','64'],
+ ['พิษณุโลก','65'],['พิจิตร','66'],['เพชรบูรณ์','67'],['ราชบุรี','70'],['กาญจนบุรี','71'],
+ ['สุพรรณบุรี','72'],['นครปฐม','73'],['สมุทรสาคร','74'],['สมุทรสงคราม','75'],
+ ['เพชรบุรี','76'],['ประจวบคีรีขันธ์','77'],['นครศรีธรรมราช','80'],['กระบี่','81'],
+ ['พังงา','82'],['ภูเก็ต','83'],['สุราษฎร์ธานี','84'],['ระนอง','85'],['ชุมพร','86'],
+ ['สงขลา','90'],['สตูล','91'],['ตรัง','92'],['พัทลุง','93'],['ปัตตานี','94'],
+ ['ยะลา','95'],['นราธิวาส','96']
+];
+
+/* รวมช่องที่อยู่ทั้งหมดเป็นข้อความเดียวสำหรับบันทึกและพิมพ์ใบส่งของ */
+function joinAddr(a){
+  if(!a) return '';
+  var isBkk = a.province === 'กรุงเทพมหานคร';
+  var parts = [
+    a.line1,
+    a.sub  ? (isBkk ? 'แขวง' : 'ต.') + a.sub  : '',
+    a.dist ? (isBkk ? 'เขต'  : 'อ.') + a.dist : '',
+    a.province ? (isBkk ? '' : 'จ.') + a.province : '',
+    a.zip
+  ];
+  return parts.filter(function(x){ return x && String(x).trim(); }).join(' ').trim();
+}
+
+/* แยกที่อยู่เดิมที่เก็บเป็นข้อความเดียวกลับมาใส่ช่อง เพื่อไม่ให้ลูกค้าเก่าต้องพิมพ์ใหม่ */
+function splitAddr(text){
+  var a = {line1:'', sub:'', dist:'', province:'', zip:''};
+  if(!text) return a;
+  var t = String(text).trim();
+  var mz = t.match(/(\d{5})\s*$/);
+  if(mz){ a.zip = mz[1]; t = t.slice(0, mz.index).trim(); }
+  var mp = t.match(/(?:จ\.|จังหวัด\s*)?([\u0E00-\u0E7F]+)\s*$/);
+  if(mp){
+    for(var i=0;i<PROVINCES.length;i++){
+      if(t.indexOf(PROVINCES[i][0]) > -1){
+        a.province = PROVINCES[i][0];
+        t = t.replace(new RegExp('(จ\\.|จังหวัด)?\\s*'+PROVINCES[i][0]), '').trim();
+        break;
+      }
+    }
+  }
+  var md = t.match(/(?:อ\.|อำเภอ|เขต)\s*([\u0E00-\u0E7F]+)/);
+  if(md){ a.dist = md[1]; t = t.replace(md[0], '').trim(); }
+  var ms = t.match(/(?:ต\.|ตำบล|แขวง)\s*([\u0E00-\u0E7F]+)/);
+  if(ms){ a.sub = ms[1]; t = t.replace(ms[0], '').trim(); }
+  a.line1 = t.replace(/\s{2,}/g,' ').trim();
+  return a;
+}
+function saveAddr(k, v){
+  if(!S.checkout.addrParts) S.checkout.addrParts = splitAddr(S.checkout.addr);
+  S.checkout.addrParts[k] = v;
+  S.checkout.addr = joinAddr(S.checkout.addrParts);
+  var pv = $('addrPreview');
+  if(pv) pv.textContent = S.checkout.addr || 'กรอกให้ครบเพื่อดูที่อยู่ที่จะใช้จัดส่ง';
+}
+
 function toStep2(){
   var c=S.checkout;
-  if(!c.name.trim()||!c.phone.trim()||!c.addr.trim()){ toast('กรอกชื่อผู้รับ เบอร์โทร และที่อยู่จัดส่งให้ครบก่อน'); return; }
+  if(!c.addrParts) c.addrParts = splitAddr(c.addr);
+  var a = c.addrParts;
+  if(!c.name.trim()||!c.phone.trim()){ toast('กรอกชื่อผู้รับและเบอร์โทรให้ครบก่อน'); return; }
   if(!/^[0-9\-\s]{9,15}$/.test(c.phone)){ toast('รูปแบบเบอร์โทรไม่ถูกต้อง เช่น 081-234-5678'); return; }
+  if(!a.line1.trim()){ toast('กรอกบ้านเลขที่และถนนก่อน'); return; }
+  if(!a.sub.trim()){ toast('กรอกตำบลหรือแขวง'); return; }
+  if(!a.dist.trim()){ toast('กรอกอำเภอหรือเขต'); return; }
+  if(!a.province){ toast('เลือกจังหวัด'); return; }
+  if(!/^\d{5}$/.test(a.zip)){ toast('รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก'); return; }
+  // ตรวจว่ารหัสไปรษณีย์อยู่ในช่วงของจังหวัดที่เลือก ช่วยจับกรณีกรอกสลับจังหวัด
+  var pre = null;
+  for(var i=0;i<PROVINCES.length;i++) if(PROVINCES[i][0]===a.province) pre = PROVINCES[i][1];
+  if(pre && a.zip.slice(0,2) !== pre){
+    toast('รหัสไปรษณีย์ '+a.zip+' ไม่ตรงกับจังหวัด'+a.province+' กรุณาตรวจสอบอีกครั้ง');
+    return;
+  }
+  c.addr = joinAddr(a);
   S.step=2; render(); window.scrollTo({top:0,behavior:'smooth'});
 }
 function pickPay(v){ S.checkout.pay=v; render(); }
@@ -2481,8 +2567,32 @@ function viewCheckout(){
       '<input id="ck1" type="text" value="'+esc(c.name)+'" placeholder="เช่น ภควัต ซามงค์" oninput="saveField(\'name\',this.value)"></div>'+
       '<div class="field"><label class="f" for="ck2">เบอร์โทรศัพท์</label>'+
       '<input id="ck2" type="tel" value="'+esc(c.phone)+'" placeholder="081-234-5678" oninput="saveField(\'phone\',this.value)"></div></div>'+
-      '<div class="field"><label class="f" for="ck3">ที่อยู่จัดส่ง</label>'+
-      '<textarea id="ck3" rows="3" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" oninput="saveField(\'addr\',this.value)">'+esc(c.addr)+'</textarea></div>'+
+      (function(){
+        if(!c.addrParts) c.addrParts = splitAddr(c.addr);
+        var a = c.addrParts;
+        return '<div class="field"><label class="f" for="ad1">บ้านเลขที่ หมู่ ซอย ถนน</label>'+
+          '<input id="ad1" type="text" value="'+esc(a.line1)+'" placeholder="เช่น 142 หมู่ 2 ถนนพังโคน-วาริชภูมิ" '+
+          'oninput="saveAddr(\'line1\', this.value)"></div>'+
+        '<div class="row2">'+
+          '<div class="field"><label class="f" for="ad2">ตำบล / แขวง</label>'+
+          '<input id="ad2" type="text" value="'+esc(a.sub)+'" placeholder="เช่น นาซอ" oninput="saveAddr(\'sub\', this.value)"></div>'+
+          '<div class="field"><label class="f" for="ad3">อำเภอ / เขต</label>'+
+          '<input id="ad3" type="text" value="'+esc(a.dist)+'" placeholder="เช่น วานรนิวาส" oninput="saveAddr(\'dist\', this.value)"></div>'+
+        '</div>'+
+        '<div class="row2">'+
+          '<div class="field"><label class="f" for="ad4">จังหวัด</label>'+
+          '<select id="ad4" onchange="saveAddr(\'province\', this.value)">'+
+          '<option value="">เลือกจังหวัด</option>'+
+          PROVINCES.map(function(p){
+            return '<option'+(a.province===p[0]?' selected':'')+'>'+p[0]+'</option>';
+          }).join('')+'</select></div>'+
+          '<div class="field"><label class="f" for="ad5">รหัสไปรษณีย์</label>'+
+          '<input id="ad5" type="text" inputmode="numeric" maxlength="5" value="'+esc(a.zip)+'" '+
+          'placeholder="เช่น 47120" oninput="saveAddr(\'zip\', this.value.replace(/[^0-9]/g,\'\'))"></div>'+
+        '</div>'+
+        '<div class="note" style="margin-bottom:14px"><b>ที่อยู่ที่จะใช้จัดส่ง</b><br>'+
+        '<span id="addrPreview">'+esc(c.addr || 'กรอกให้ครบเพื่อดูที่อยู่ที่จะใช้จัดส่ง')+'</span></div>';
+      })()+
       '<div class="field"><label class="f" for="ck4">หมายเหตุถึงร้าน (ไม่บังคับ)</label>'+
       '<input id="ck4" type="text" value="'+esc(c.note)+'" placeholder="เช่น ฝากไว้หน้าบ้านได้เลย" oninput="saveField(\'note\',this.value)"></div>'+
       '<button class="btn" onclick="toStep2()">ถัดไป: เลือกช่องทางชำระเงิน</button></div>';
@@ -2521,7 +2631,7 @@ function viewCheckout(){
     body='<div class="panel"><h3>ตรวจสอบก่อนยืนยันการสั่งซื้อ</h3>'+
       '<div class="row2" style="margin-bottom:14px">'+
       '<div><span class="sku">ผู้รับสินค้า</span><div style="font-weight:600">'+esc(c.name)+' · '+esc(c.phone)+'</div>'+
-      '<div style="font-size:14px;color:var(--ink-2)">'+esc(c.addr)+'</div>'+
+      '<div style="font-size:15px;color:var(--ink-2)">'+esc(c.addr)+'</div>'+
       (c.note?'<div style="font-size:13px;color:var(--ink-2)">หมายเหตุ: '+esc(c.note)+'</div>':'')+'</div>'+
       '<div><span class="sku">ช่องทางชำระเงิน</span><div style="font-weight:600">'+esc(c.pay)+'</div>'+
       (c.slipName?'<div class="sku">แนบสลิป: '+esc(c.slipName)+'</div>':'')+
@@ -2569,9 +2679,9 @@ function viewDone(){
       '<h2 style="font-family:var(--display);font-size:31px;margin:8px 0 4px;font-weight:600;line-height:1.4">ร้านได้รับคำสั่งซื้อของคุณแล้ว</h2>'+
       '<p style="color:var(--ink-2);margin:0 auto;max-width:52ch">ระบบบันทึกคำสั่งซื้อเรียบร้อย ร้านจะตรวจสอบการชำระเงินและอนุมัติภายใน 1 ชั่วโมงทำการ จากนั้นจะแจ้งเลขพัสดุให้ทันที</p>'+
       '<div style="margin:20px auto;max-width:520px;background:var(--forest);color:#DCEBDF;border-radius:14px;padding:18px">'+
-        '<small style="color:#8FBF9F;letter-spacing:.2em;font-family:var(--mono);font-size:11px">เลขที่คำสั่งซื้อ</small>'+
+        '<small style="color:#8FBF9F;letter-spacing:.2em;font-family:var(--mono);font-size:12px">เลขที่คำสั่งซื้อ</small>'+
         '<div class="mono" style="font-size:26px;color:#fff;letter-spacing:.08em">'+esc(o.code)+'</div>'+
-        '<div style="font-size:13.5px;margin-top:6px">ยอดชำระ ฿'+baht(o.total)+' · '+esc(o.payment_method)+'</div></div>'+
+        '<div style="font-size:13px;margin-top:6px">ยอดชำระ ฿'+baht(o.total)+' · '+esc(o.payment_method)+'</div></div>'+
       '<div class="tblwrap" style="max-width:560px;margin:0 auto;text-align:left"><table>'+
         (o.items||[]).map(function(i){return '<tr><td>'+esc(i.name)+' × '+i.qty+'</td><td style="text-align:right">฿'+baht(i.price*i.qty)+'</td></tr>';}).join('')+
         (Number(o.discount)? '<tr><td>ส่วนลด'+(o.coupon_code?' ('+esc(o.coupon_code)+')':'')+'</td><td style="text-align:right;color:var(--leaf)">−฿'+baht(o.discount)+'</td></tr>':'')+
@@ -2593,7 +2703,7 @@ function viewTrack(){
     box='<div class="panel" style="max-width:520px">'+
       '<div class="eyebrow">ยืนยันตัวตน</div>'+
       '<h3 style="margin:6px 0 4px">พบคำสั่งซื้อ '+esc(S.track.code)+'</h3>'+
-      '<p style="color:var(--ink-2);font-size:14px;margin:0 0 14px">'+esc(S.track.message)+'</p>'+
+      '<p style="color:var(--ink-2);font-size:15px;margin:0 0 14px">'+esc(S.track.message)+'</p>'+
       '<div class="field"><label class="f" for="tphone2">เบอร์โทร 4 ตัวท้ายของผู้รับสินค้า</label>'+
       '<div style="display:flex;gap:9px">'+
       '<input id="tphone2" type="text" inputmode="numeric" maxlength="4" placeholder="เช่น 5678" style="flex:1" '+
@@ -2610,7 +2720,7 @@ function viewTrack(){
     var idx=stages.indexOf(o.status);
     box='<div class="layout2"><div class="panel">'+
       '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">'+
-      '<div><span class="sku">เลขที่คำสั่งซื้อ</span><div class="mono" style="font-size:19px">'+esc(o.code)+'</div></div>'+
+      '<div><span class="sku">เลขที่คำสั่งซื้อ</span><div class="mono" style="font-size:21px">'+esc(o.code)+'</div></div>'+
       '<span class="status '+STATUS[o.status].c+'" style="align-self:center">'+STATUS[o.status].t+'</span></div>'+
       (o.tracking_no? '<div class="note" style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">'+
         '<span>ขนส่ง: <b>'+esc(o.carrier)+'</b> · เลขพัสดุ <span class="mono">'+esc(o.tracking_no)+'</span></span>'+
@@ -2628,7 +2738,7 @@ function viewTrack(){
       (Number(o.discount)? '<div class="sum" style="color:var(--leaf)"><span>ส่วนลด'+(o.coupon_code?' ('+esc(o.coupon_code)+')':'')+'</span><b>−฿'+baht(o.discount)+'</b></div>':'')+
       '<div class="sum"><span>ค่าจัดส่ง</span><b>'+(Number(o.shipping_fee)?'฿'+baht(o.shipping_fee):'ฟรี')+'</b></div>'+
       '<div class="sum total"><span>รวม</span><span>฿'+baht(o.total)+'</span></div>'+
-      '<div style="margin-top:12px;font-size:13.5px;color:var(--ink-2)">จัดส่งถึง: '+esc(o.receiver_name)+'<br>'+esc(o.address)+'</div></div></div>';
+      '<div style="margin-top:12px;font-size:13px;color:var(--ink-2)">จัดส่งถึง: '+esc(o.receiver_name)+'<br>'+esc(o.address)+'</div></div></div>';
   }
   return '<div class="wrap"><section>'+
     '<div class="sechead"><div><div class="eyebrow">Track &amp; Trace</div><h2>ติดตามสถานะพัสดุ</h2>'+
@@ -2676,7 +2786,7 @@ function viewOrders(){
 function acctDash(){
   var s2 = DB.summary || {};
   return '<div class="kpis">'+
-    '<div class="kpi"><small>สถานะบัญชี</small><b style="font-size:22px">'+esc(S.user.status)+'</b>'+
+    '<div class="kpi"><small>สถานะบัญชี</small><b style="font-size:21px">'+esc(S.user.status)+'</b>'+
       '<small>สมาชิกตั้งแต่ '+esc(S.user.joined)+'</small></div>'+
     '<div class="kpi"><small>คำสั่งซื้อทั้งหมด</small><b>'+(s2.orders_total||0)+'</b>'+
       '<small>กำลังดำเนินการ '+(s2.orders_active||0)+' รายการ</small></div>'+
@@ -2692,10 +2802,10 @@ function acctDash(){
         '<td>฿'+baht(o.total)+'</td><td><span class="status '+STATUS[o.status].c+'">'+STATUS[o.status].t+'</span>'+
         (o.status==='await'?'<div class="sku">ยกเลิกได้จนกว่าร้านจะอนุมัติ</div>':'')+'</td></tr>';
       }).join('')+'</table></div>'
-      : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีประวัติการสั่งซื้อ</p>')+
+      : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีประวัติการสั่งซื้อ</p>')+
     '<button class="btn sm ghost" style="margin-top:12px" onclick="S.acctTab=\'orders\';render()">ดูทั้งหมด</button></div>'+
     '<div class="panel"><h3>สิทธิ์ของสมาชิก</h3>'+
-    '<p style="color:var(--ink-2);font-size:14px">บัญชีสมาชิกทำให้คุณติดตามคำสั่งซื้อได้ทุกขั้นตอน และใช้บริการที่ผู้เยี่ยมชมทั่วไปใช้ไม่ได้</p>'+
+    '<p style="color:var(--ink-2);font-size:15px">บัญชีสมาชิกทำให้คุณติดตามคำสั่งซื้อได้ทุกขั้นตอน และใช้บริการที่ผู้เยี่ยมชมทั่วไปใช้ไม่ได้</p>'+
     '<div class="sum"><span>สั่งซื้อและติดตามสถานะ</span><b>ใช้ได้</b></div>'+
     '<div class="sum"><span>ยกเลิกคำสั่งซื้อเองก่อนร้านอนุมัติ</span><b>ใช้ได้</b></div>'+
     '<div class="sum"><span>ร่วมประมูลต้นไม้หายาก</span><b>'+(S.user.status==='ระงับ'?'ถูกระงับ':'ใช้ได้')+'</b></div>'+
@@ -2727,7 +2837,7 @@ function acctOrders(){
 
 function acctProfile(){
   return '<div class="layout2"><div class="panel"><h3>ข้อมูลส่วนตัว</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 14px">ข้อมูลนี้จะถูกเติมให้อัตโนมัติเมื่อคุณสั่งซื้อครั้งถัดไป</p>'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 14px">ข้อมูลนี้จะถูกเติมให้อัตโนมัติเมื่อคุณสั่งซื้อครั้งถัดไป</p>'+
     '<div class="field"><label class="f" for="pf_email">อีเมล (ใช้เข้าสู่ระบบ)</label>'+
     '<input id="pf_email" type="email" value="'+esc(S.user.email)+'" disabled></div>'+
     '<div class="field"><label class="f" for="pf_name">ชื่อ-นามสกุล</label>'+
@@ -2753,7 +2863,7 @@ function acctReviews(){
       return '<div class="review"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">'+
       '<b>'+esc(r.products?r.products.name:'สินค้าถูกลบแล้ว')+'</b>'+
       '<span class="stars">'+starRow(r.stars)+'</span></div>'+
-      '<div style="font-size:14px;color:var(--ink-2)">'+esc(r.body)+'</div>'+
+      '<div style="font-size:15px;color:var(--ink-2)">'+esc(r.body)+'</div>'+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px">'+
       '<small class="mono" style="color:#9AAAA0">'+esc(thaiDate(r.created_at))+'</small>'+
       '<button class="btn sm danger" onclick="delMyReview('+r.id+','+r.product_id+')">ลบรีวิว</button></div></div>';
@@ -2773,7 +2883,7 @@ function acctBids(){
         var res = ended ? (top? '<span class="status s-done">ชนะการประมูล</span>' : '<span class="status s-reject">ไม่ชนะ</span>')
                         : (top? '<span class="status s-shipped">สูงสุดขณะนี้</span>' : '<span class="status s-await">มีผู้เสนอสูงกว่า</span>');
         return '<tr><td>'+esc(a.title||'-')+'</td><td><b>฿'+baht(b.amount)+'</b></td>'+
-        '<td class="mono" style="font-size:12.5px">'+esc(thaiDate(b.created_at))+'</td><td>'+res+'</td></tr>';
+        '<td class="mono" style="font-size:13px">'+esc(thaiDate(b.created_at))+'</td><td>'+res+'</td></tr>';
       }).join('')+'</table></div>'
       : '<div class="empty"><p>คุณยังไม่เคยร่วมประมูล</p>'+
         '<button class="btn" onclick="go(\'auction\')">ไปที่ห้องประมูล</button></div>')+'</div>';
@@ -2781,19 +2891,19 @@ function acctBids(){
 
 function acctPrivacy(){
   return '<div class="layout2"><div class="panel"><h3>สิทธิของคุณตาม PDPA</h3>'+
-    '<p style="color:var(--ink-2);font-size:14px">พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 ให้สิทธิเจ้าของข้อมูลเข้าถึงและขอลบข้อมูลของตนเองได้ ร้านจึงทำเครื่องมือให้คุณใช้สิทธิได้ทันทีโดยไม่ต้องรอเจ้าหน้าที่</p>'+
+    '<p style="color:var(--ink-2);font-size:15px">พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 ให้สิทธิเจ้าของข้อมูลเข้าถึงและขอลบข้อมูลของตนเองได้ ร้านจึงทำเครื่องมือให้คุณใช้สิทธิได้ทันทีโดยไม่ต้องรอเจ้าหน้าที่</p>'+
     '<div class="review"><b>สิทธิเข้าถึงและขอรับสำเนาข้อมูล (มาตรา 30)</b>'+
-    '<div style="font-size:13.5px;color:var(--ink-2);margin-bottom:8px">ดาวน์โหลดข้อมูลทั้งหมดที่ร้านเก็บเกี่ยวกับคุณเป็นไฟล์ JSON ได้แก่ โปรไฟล์ คำสั่งซื้อ รีวิว การประมูล และรายการโปรด</div>'+
+    '<div style="font-size:13px;color:var(--ink-2);margin-bottom:8px">ดาวน์โหลดข้อมูลทั้งหมดที่ร้านเก็บเกี่ยวกับคุณเป็นไฟล์ JSON ได้แก่ โปรไฟล์ คำสั่งซื้อ รีวิว การประมูล และรายการโปรด</div>'+
     '<button class="btn sm" onclick="exportMyData()">ดาวน์โหลดสำเนาข้อมูล</button></div>'+
     '<div class="review"><b>สิทธิขอให้ลบข้อมูล (มาตรา 33)</b>'+
-    '<div style="font-size:13.5px;color:var(--ink-2);margin-bottom:8px">ลบชื่อ เบอร์โทร ที่อยู่ รีวิว และรายการโปรดออกจากระบบถาวร ข้อมูลคำสั่งซื้อจะถูกเก็บต่อในรูปแบบที่ระบุตัวบุคคลไม่ได้ ตามที่กฎหมายภาษีอากรกำหนด</div>'+
+    '<div style="font-size:13px;color:var(--ink-2);margin-bottom:8px">ลบชื่อ เบอร์โทร ที่อยู่ รีวิว และรายการโปรดออกจากระบบถาวร ข้อมูลคำสั่งซื้อจะถูกเก็บต่อในรูปแบบที่ระบุตัวบุคคลไม่ได้ ตามที่กฎหมายภาษีอากรกำหนด</div>'+
     '<button class="btn sm danger" onclick="askDeleteAccount()">ขอลบบัญชีของฉัน</button></div>'+
     '<div class="review" style="border-bottom:0"><b>สิทธิอื่น ๆ</b>'+
-    '<div style="font-size:13.5px;color:var(--ink-2);margin-bottom:8px">สิทธิคัดค้านการประมวลผล ขอให้ระงับการใช้ และขอให้แก้ไขข้อมูลให้ถูกต้อง ติดต่อเจ้าหน้าที่คุ้มครองข้อมูลได้ที่ privacy@greenplant.co.th</div>'+
+    '<div style="font-size:13px;color:var(--ink-2);margin-bottom:8px">สิทธิคัดค้านการประมวลผล ขอให้ระงับการใช้ และขอให้แก้ไขข้อมูลให้ถูกต้อง ติดต่อเจ้าหน้าที่คุ้มครองข้อมูลได้ที่ privacy@greenplant.co.th</div>'+
     '<button class="btn sm ghost" onclick="openContact()">ติดต่อเจ้าหน้าที่</button></div></div>'+
     '<div class="panel"><h3>ข้อมูลที่เราเก็บเกี่ยวกับคุณ</h3>'+
     '<div class="sum"><span>ชื่อ-นามสกุล</span><b>'+esc(S.user.name||'-')+'</b></div>'+
-    '<div class="sum"><span>อีเมล</span><b style="font-size:14px">'+esc(S.user.email)+'</b></div>'+
+    '<div class="sum"><span>อีเมล</span><b style="font-size:15px">'+esc(S.user.email)+'</b></div>'+
     '<div class="sum"><span>เบอร์โทรศัพท์</span><b>'+esc(S.user.phone||'-')+'</b></div>'+
     '<div class="sum"><span>ที่อยู่จัดส่ง</span><b style="font-size:13px;max-width:55%;text-align:right">'+esc(S.user.addr||'-')+'</b></div>'+
     '<div class="sum"><span>คำสั่งซื้อที่บันทึกไว้</span><b>'+DB.myOrders.length+' รายการ</b></div>'+
@@ -2883,7 +2993,7 @@ function openAuth(mode, forAdmin){
     '<div class="pwwrap"><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()">'+
     '<button type="button" class="pwtog" onclick="togglePw(\'lp\', this)">แสดง</button></div></div>'+
     '<button class="btn" style="width:100%" onclick="doLogin()">เข้าสู่ระบบ</button>'+
-    '<div style="display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:13.5px;flex-wrap:wrap">'+
+    '<div style="display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:13px;flex-wrap:wrap">'+
     '<a href="#" onclick="forgotPassword();return false" style="color:var(--ink-2)">ลืมรหัสผ่าน?</a>'+
     '<span>ยังไม่มีบัญชี? <a href="#" onclick="openAuth(\'reg\');return false" style="color:var(--leaf);font-weight:600">สมัครสมาชิก</a></span></div>';
 
@@ -2908,12 +3018,12 @@ function openAuth(mode, forAdmin){
     '<div id="msg_pass" class="fmsg"></div><div id="pwlab" class="fmsg"></div></div></div>'+
     '<label class="payopt" style="align-items:flex-start;margin-bottom:14px">'+
     '<input type="checkbox" onchange="regAccept(this)">'+
-    '<span><b style="font-size:14px">ยอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว</b>'+
+    '<span><b style="font-size:15px">ยอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว</b>'+
     '<small>ยินยอมให้ร้านเก็บและใช้ข้อมูลเพื่อจัดส่งสินค้าและติดต่อกลับ ตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 '+
     '<a href="#" onclick="event.preventDefault();closeModal();goLegal(\'terms\')" style="color:var(--leaf);font-weight:600">อ่านเงื่อนไข</a> · '+
     '<a href="#" onclick="event.preventDefault();closeModal();goLegal(\'privacy\')" style="color:var(--leaf);font-weight:600">อ่านนโยบาย</a></small></span></label>'+
     '<button id="regBtn" class="btn" style="width:100%" onclick="doRegister()" disabled>สมัครสมาชิก</button>'+
-    '<p style="text-align:center;font-size:13.5px;margin:12px 0 0">มีบัญชีแล้ว? '+
+    '<p style="text-align:center;font-size:13px;margin:12px 0 0">มีบัญชีแล้ว? '+
     '<a href="#" onclick="openAuth(\'login\');return false" style="color:var(--leaf);font-weight:600">เข้าสู่ระบบ</a></p>';
 
   $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()">'+
@@ -2922,7 +3032,7 @@ function openAuth(mode, forAdmin){
     '<div class="authwrap">'+ authSide(mode) +
     '<div class="authform">'+
       '<div class="eyebrow">'+(forAdmin?'Merchant Back Office':(mode==='reg'?'Create Account':'Sign In'))+'</div>'+
-      '<h2 style="font-family:var(--display);font-size:25px;margin:6px 0 16px;font-weight:600;line-height:1.45">'+
+      '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 16px;font-weight:600;line-height:1.45">'+
         (mode==='login'?(forAdmin?'เข้าสู่ระบบหลังร้าน':'เข้าสู่ระบบสมาชิก'):'สมัครสมาชิกใหม่')+'</h2>'+
       (mode==='login'?login:reg)+
     '</div></div></div></div>';
@@ -2934,8 +3044,8 @@ function openContact(){
   $('modalRoot').innerHTML='<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal narrow" role="dialog" aria-modal="true">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Customer Service</div>'+
-    '<h2 style="font-family:var(--display);font-size:25px;margin:6px 0 4px;font-weight:600;line-height:1.45">ติดต่อร้าน</h2>'+
-    '<p style="color:var(--ink-2);font-size:14px;margin:0 0 16px">สอบถามการดูแลต้นไม้ แจ้งปัญหาการจัดส่ง หรือขอใบเสนอราคาสำหรับโครงการจัดสวน</p>'+
+    '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 4px;font-weight:600;line-height:1.45">ติดต่อร้าน</h2>'+
+    '<p style="color:var(--ink-2);font-size:15px;margin:0 0 16px">สอบถามการดูแลต้นไม้ แจ้งปัญหาการจัดส่ง หรือขอใบเสนอราคาสำหรับโครงการจัดสวน</p>'+
     '<div class="field"><label class="f" for="cn">ชื่อของคุณ</label><input id="cn" type="text" value="'+(S.user?esc(S.user.name):'')+'"></div>'+
     '<div class="field"><label class="f" for="ce">อีเมลติดต่อกลับ</label><input id="ce" type="email" value="'+(S.user?esc(S.user.email):'')+'"></div>'+
     '<div class="field"><label class="f" for="ct">เรื่องที่ต้องการติดต่อ</label><select id="ct"><option>สอบถามการดูแล</option><option>ปัญหาการจัดส่ง</option><option>ขอใบเสนอราคา</option><option>อื่น ๆ</option></select></div>'+
@@ -2987,7 +3097,7 @@ function useCoupon(code){
 function couponBox(){
   if(S.coupon){
     return '<div class="note" style="margin:10px 0;display:flex;justify-content:space-between;gap:10px;align-items:center">'+
-      '<span><b>'+esc(S.coupon.code)+'</b><br><span style="font-size:12.5px">'+esc(S.coupon.desc||'')+'</span></span>'+
+      '<span><b>'+esc(S.coupon.code)+'</b><br><span style="font-size:13px">'+esc(S.coupon.desc||'')+'</span></span>'+
       '<button class="btn sm ghost" onclick="clearCoupon()">นำออก</button></div>';
   }
   return couponHint()+
@@ -3132,12 +3242,12 @@ function relatedBox(p){
   }).slice(0, 4);
   if(!rel.length) return '';
   return '<div style="margin-top:22px;border-top:1px solid var(--line);padding-top:16px">'+
-    '<h3 style="font-family:var(--display);font-size:19px;margin:0 0 10px;font-weight:600">สินค้าอื่นในหมวด '+esc(p.category)+'</h3>'+
+    '<h3 style="font-family:var(--display);font-size:21px;margin:0 0 10px;font-weight:600">สินค้าอื่นในหมวด '+esc(p.category)+'</h3>'+
     '<div class="relgrid">'+ rel.map(function(x){
       return '<div class="relitem" onclick="openProduct('+x.id+')">'+
         '<div class="relimg">'+pic(x)+'</div>'+
-        '<div><div style="font-weight:600;font-size:14px;line-height:1.4">'+esc(x.name)+'</div>'+
-        '<div class="price" style="font-size:16px;padding-top:2px">฿'+baht(x.price)+'</div></div></div>';
+        '<div><div style="font-weight:600;font-size:15px;line-height:1.4">'+esc(x.name)+'</div>'+
+        '<div class="price" style="font-size:17px;padding-top:2px">฿'+baht(x.price)+'</div></div></div>';
     }).join('') +'</div></div>';
 }
 
@@ -3383,7 +3493,7 @@ function viewAuction(){
         '<p>ยังไม่มีรายการประมูลที่เปิดอยู่ในขณะนี้</p></div>')+
 
     (closed.length? '<div class="sechead" style="margin-top:34px"><div><div class="eyebrow">ปิดประมูลแล้ว</div>'+
-      '<h2 style="font-size:24px">ผลการประมูลที่ผ่านมา</h2></div></div>'+
+      '<h2 style="font-size:26px">ผลการประมูลที่ผ่านมา</h2></div></div>'+
       '<div class="grid">'+closed.map(auctionCard).join('')+'</div>' : '')+
     '</section></div>';
 }
@@ -3439,7 +3549,7 @@ function drawAuction(a, bids){
                 : '<b>เหลือเวลา '+cd.text+'</b> · ปิดประมูล '+esc(thaiDate(a.ends_at)))+'</div>'+
         '<dl class="spec">'+
           '<dt>ราคาเริ่มต้น</dt><dd>฿'+baht(a.start_price)+'</dd>'+
-          '<dt>ราคาปัจจุบัน</dt><dd><b style="font-size:18px">฿'+baht(Number(a.bid_count)>0?a.current_price:a.start_price)+'</b></dd>'+
+          '<dt>ราคาปัจจุบัน</dt><dd><b style="font-size:17px">฿'+baht(Number(a.bid_count)>0?a.current_price:a.start_price)+'</b></dd>'+
           '<dt>เพิ่มขั้นต่ำครั้งละ</dt><dd>฿'+baht(a.min_increment)+'</dd>'+
           '<dt>จำนวนการเสนอ</dt><dd>'+a.bid_count+' ครั้ง</dd>'+
           '<dt>ผู้เสนอสูงสุด</dt><dd>'+(a.top_bidder?esc(a.top_bidder):'ยังไม่มีผู้เสนอราคา')+'</dd>'+
@@ -3460,15 +3570,15 @@ function drawAuction(a, bids){
                 '</div></div>')))+
       '</div>'+
     '</div>'+
-    '<div style="margin-top:20px"><h3 style="font-family:var(--display);font-size:20px;margin:0 0 8px;font-weight:600">ประวัติการเสนอราคา</h3>'+
-    (bids===null? '<p style="color:var(--ink-2);font-size:14px">กำลังโหลด…</p>'
+    '<div style="margin-top:20px"><h3 style="font-family:var(--display);font-size:21px;margin:0 0 8px;font-weight:600">ประวัติการเสนอราคา</h3>'+
+    (bids===null? '<p style="color:var(--ink-2);font-size:15px">กำลังโหลด…</p>'
       : (bids.length? '<div class="tblwrap"><table><tr><th>ลำดับ</th><th>ผู้เสนอราคา</th><th>จำนวนเงิน</th><th>เวลา</th></tr>'+
           bids.map(function(b,i){
             return '<tr><td>'+(i+1)+(i===0?' <span class="chip">สูงสุด</span>':'')+'</td>'+
             '<td>'+esc(b.bidder_name)+'</td><td><b>฿'+baht(b.amount)+'</b></td>'+
-            '<td class="mono" style="font-size:12.5px">'+esc(thaiDate(b.created_at))+'</td></tr>';
+            '<td class="mono" style="font-size:13px">'+esc(thaiDate(b.created_at))+'</td></tr>';
           }).join('')+'</table></div>'
-        : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีผู้เสนอราคา เป็นคนแรกได้เลย</p>'))+
+        : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีผู้เสนอราคา เป็นคนแรกได้เลย</p>'))+
     '</div></div></div>';
 }
 
@@ -3713,7 +3823,7 @@ function seoAudit(){
       '<div style="font-size:13px;color:var(--ink-2)">'+esc(c[2])+'</div></div>';
     }).join('')+'</div>'+
     '<div class="panel"><h3>ไฟล์ที่ต้องอัปโหลดคู่กับเว็บ</h3>'+
-    '<p style="font-size:13.5px;color:var(--ink-2)">วางไฟล์สองไฟล์นี้ไว้โฟลเดอร์เดียวกับ index.html เพื่อให้เสิร์ชเอนจินเก็บข้อมูลได้ถูกต้อง</p>'+
+    '<p style="font-size:13px;color:var(--ink-2)">วางไฟล์สองไฟล์นี้ไว้โฟลเดอร์เดียวกับ index.html เพื่อให้เสิร์ชเอนจินเก็บข้อมูลได้ถูกต้อง</p>'+
     '<div class="field"><label class="f">robots.txt</label>'+
     '<textarea rows="5" readonly style="font-family:var(--mono);font-size:12px">User-agent: *\nAllow: /\nDisallow: /#/admin\nDisallow: /#/orders\n\nSitemap: '+esc(location.origin)+'/sitemap.xml</textarea></div>'+
     '<div class="field"><label class="f">sitemap.xml</label>'+
@@ -3783,10 +3893,10 @@ function adminPromo(){
     '</table></div></div>'+
 
     '<div class="panel"><h3>ผู้สมัครรับข่าวสาร ('+DB.subscribers.length+' คน)</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 12px">รายชื่อสำหรับส่งอีเมลโปรโมชัน ถือเป็นการตลาดแบบได้รับความยินยอมตาม PDPA</p>'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 12px">รายชื่อสำหรับส่งอีเมลโปรโมชัน ถือเป็นการตลาดแบบได้รับความยินยอมตาม PDPA</p>'+
     (DB.subscribers.length? '<div class="tblwrap"><table><tr><th>อีเมล</th><th>สมัครเมื่อ</th></tr>'+
-      DB.subscribers.map(function(s){return '<tr><td>'+esc(s.email)+'</td><td class="mono" style="font-size:12.5px">'+esc(thaiDate(s.created_at))+'</td></tr>';}).join('')+
-      '</table></div>' : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีผู้สมัครรับข่าวสาร</p>')+'</div>';
+      DB.subscribers.map(function(s){return '<tr><td>'+esc(s.email)+'</td><td class="mono" style="font-size:13px">'+esc(thaiDate(s.created_at))+'</td></tr>';}).join('')+
+      '</table></div>' : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีผู้สมัครรับข่าวสาร</p>')+'</div>';
 }
 
 /* ---------- 50) แท็บจัดการการประมูล ---------- */
@@ -3916,7 +4026,7 @@ function viewAbout(){
       return '<article class="pcard"><div class="thumb"><div class="thumbimg">'+vis+'</div></div>'+
         '<div class="pbody"><span class="sku">ผลงานการจัดวาง</span>'+
         '<span class="pname">'+esc(w[0])+'</span>'+
-        '<p style="font-size:13.5px;color:var(--ink-2);margin:4px 0 0">'+esc(w[2])+'</p></div></article>';
+        '<p style="font-size:13px;color:var(--ink-2);margin:4px 0 0">'+esc(w[2])+'</p></div></article>';
     }).join('')+'</div>'+
     '<div class="note" style="margin-top:18px">ต้องการให้ทีมงานออกแบบมุมสีเขียวให้พื้นที่ของคุณ? '+
     '<button class="btn sm ghost" style="margin-left:6px" onclick="openContact()">ขอใบเสนอราคา</button></div>';
@@ -4003,7 +4113,7 @@ function adminDash(){
     '<button class="btn sm ghost" onclick="tab(\'ord\')">จัดการคำสั่งซื้อทั้งหมด</button>'+
     '<button class="btn sm ghost" onclick="exportOrdersCSV()">ส่งออกรายงาน CSV</button></div></div>'+
     '<div class="panel"><h3>รูปแบนเนอร์หน้าแรก</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 12px">'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 12px">'+
     'ใส่ลิงก์รูปเต็ม หรือรหัสรูปจาก Pexels · เว้นว่างไว้ระบบจะใช้รูปสินค้าตัวแรกที่มีรูปจริง</p>'+
     '<div style="display:flex;gap:9px;flex-wrap:wrap">'+
     '<input id="set_hero" type="text" value="'+esc(SHOP.hero||'')+'" placeholder="https://… หรือ 18343648" style="flex:1;min-width:200px">'+
@@ -4022,8 +4132,8 @@ function adminDash(){
         g[k].n++;
       });
       var keys = Object.keys(g).sort(function(a,b){ return g[b].n - g[a].n; });
-      if(!keys.length) return '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีลูกค้าลงชื่อรอสินค้า</p>';
-      return '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 10px">'+
+      if(!keys.length) return '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีลูกค้าลงชื่อรอสินค้า</p>';
+      return '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 10px">'+
         'ใช้ตัดสินใจว่าควรสั่งสินค้ารายการไหนเข้าร้านก่อน</p>'+
         keys.map(function(k){
           return '<div class="sum"><span>'+esc(k)+'</span>'+
@@ -4037,7 +4147,7 @@ function adminDash(){
     '<div class="panel"><h3>สินค้าใกล้หมด</h3>'+
       (low.length? low.map(function(p){
         return '<div class="sum"><span>'+esc(p.name)+'</span><b style="color:'+(p.stock===0?'var(--danger)':'var(--warn)')+'">'+p.stock+' ชิ้น</b></div>';
-      }).join('') : '<p style="color:var(--ink-2);font-size:14px">สต็อกทุกรายการอยู่ในระดับปลอดภัย</p>')+
+      }).join('') : '<p style="color:var(--ink-2);font-size:15px">สต็อกทุกรายการอยู่ในระดับปลอดภัย</p>')+
       '<button class="btn sm ghost" style="margin-top:12px" onclick="tab(\'cat\')">ไปที่การจัดการสต็อก</button></div></div>';
 }
 
@@ -4083,15 +4193,15 @@ function salesReport(){
   return '<div class="layout2" style="margin-bottom:18px"><div class="panel">'+
     '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">'+
     '<h3 style="margin:0">ยอดขาย 7 วันล่าสุด</h3>'+
-    '<b style="font-family:var(--display);font-size:22px;letter-spacing:.6px">฿'+baht(week)+'</b></div>'+
+    '<b style="font-family:var(--display);font-size:21px;letter-spacing:.6px">฿'+baht(week)+'</b></div>'+
     '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;margin-top:10px" role="img" '+
     'aria-label="กราฟแท่งแสดงยอดขายรายวันย้อนหลัง 7 วัน">'+bars+'</svg>'+
-    (week===0? '<p style="color:var(--ink-2);font-size:13.5px;margin:0">ยังไม่มียอดขายในช่วง 7 วันที่ผ่านมา</p>':'')+
+    (week===0? '<p style="color:var(--ink-2);font-size:13px;margin:0">ยังไม่มียอดขายในช่วง 7 วันที่ผ่านมา</p>':'')+
     '</div>'+
     '<div class="panel"><h3>สินค้าขายดี</h3>'+
     (top.length? top.map(function(t,i){
       return '<div class="sum"><span>'+(i+1)+'. '+esc(t.name)+'</span><b>'+t.qty+' ชิ้น · ฿'+baht(t.sum)+'</b></div>';
-    }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีข้อมูลการขาย</p>')+
+    }).join('') : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีข้อมูลการขาย</p>')+
     '</div></div>';
 }
 
@@ -4157,7 +4267,7 @@ function waitingFor(pid){
 /* ---------- 37) คำสั่งซื้อและการตรวจสอบลูกค้า ---------- */
 function adminOrders(){
   if(!DB.adminOrders.length){
-    return '<div class="panel"><h3>คำสั่งซื้อทั้งหมด</h3><p style="color:var(--ink-2);font-size:14px">ยังไม่มีคำสั่งซื้อเข้ามาในระบบ</p></div>';
+    return '<div class="panel"><h3>คำสั่งซื้อทั้งหมด</h3><p style="color:var(--ink-2);font-size:15px">ยังไม่มีคำสั่งซื้อเข้ามาในระบบ</p></div>';
   }
   var q=(S.ordQ||'').trim().toLowerCase();
   var list = DB.adminOrders.filter(function(o){
@@ -4170,7 +4280,7 @@ function adminOrders(){
     counts[k]=DB.adminOrders.filter(function(o){return o.status===k;}).length;
   });
   return '<div class="panel"><h3>คำสั่งซื้อทั้งหมด และการตรวจสอบลูกค้า</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 12px">ตรวจสอบหลักฐานการชำระเงินและประวัติของลูกค้า ก่อนกดอนุมัติเพื่อส่งงานต่อไปยังฝ่ายจัดส่ง</p>'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 12px">ตรวจสอบหลักฐานการชำระเงินและประวัติของลูกค้า ก่อนกดอนุมัติเพื่อส่งงานต่อไปยังฝ่ายจัดส่ง</p>'+
     '<div class="toolbar" style="margin-bottom:14px">'+
       '<button class="pill'+((!S.ordStatus||S.ordStatus==='all')?' on':'')+'" onclick="S.ordStatus=\'all\';render()">ทั้งหมด ('+counts.all+')</button>'+
       ['await','approved','packing','shipped','done','reject'].map(function(k){
@@ -4180,7 +4290,7 @@ function adminOrders(){
       '<input type="text" placeholder="ค้นหาเลขที่ ชื่อ เบอร์โทร หรือเลขพัสดุ" value="'+esc(S.ordQ||'')+'" '+
       'style="margin-left:auto;flex:1;min-width:220px" oninput="S.ordQ=this.value;clearTimeout(window._oq);window._oq=setTimeout(render,250)">'+
     '</div>'+
-    (list.length? '' : '<p style="color:var(--ink-2);font-size:14px">ไม่พบคำสั่งซื้อที่ตรงกับเงื่อนไข</p>')+
+    (list.length? '' : '<p style="color:var(--ink-2);font-size:15px">ไม่พบคำสั่งซื้อที่ตรงกับเงื่อนไข</p>')+
     list.map(function(o){
       var u=o.profiles;
       var hist = DB.adminOrders.filter(function(x){ return x.profiles && u && x.profiles.email===u.email; });
@@ -4194,10 +4304,10 @@ function adminOrders(){
         '<div style="font-size:13px;color:var(--ink-2);max-width:52ch">'+esc(o.address)+'</div>'+
         (o.note?'<div style="font-size:13px;color:var(--ink-2)">หมายเหตุ: '+esc(o.note)+'</div>':'')+
         '<div class="sku" style="margin-top:4px">สั่งเมื่อ '+esc(thaiDate(o.created_at))+' · ชำระโดย '+esc(o.payment_method)+'</div></div>'+
-        '<div style="text-align:right"><div style="font-family:var(--display);font-size:23px;font-weight:600;letter-spacing:.6px">฿'+baht(o.total)+'</div>'+
+        '<div style="text-align:right"><div style="font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:.6px">฿'+baht(o.total)+'</div>'+
         '<div class="sku">'+(o.order_items||[]).length+' รายการ</div></div></div>'+
 
-        '<div style="font-size:13.5px;color:var(--ink-2);margin:8px 0">'+
+        '<div style="font-size:13px;color:var(--ink-2);margin:8px 0">'+
         (o.order_items||[]).map(function(i){return esc(i.product_name)+' × '+i.qty;}).join(' · ')+'</div>'+
 
         (o.slip_url? '<button class="btn sm ghost" style="margin-bottom:8px" onclick="viewSlip(\''+esc(o.slip_url)+'\')">ดูสลิปการโอน</button>':'')+
@@ -4235,13 +4345,13 @@ function adminShip(){
       '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">'+
       '<div><span class="mono">'+esc(o.code)+'</span> <span class="status '+STATUS[o.status].c+'">'+STATUS[o.status].t+'</span>'+
       '<div style="font-weight:600">'+esc(o.receiver_name)+'</div><div style="font-size:13px;color:var(--ink-2);max-width:50ch">'+esc(o.address)+'</div></div>'+
-      '<div style="font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:.6px">฿'+baht(o.total)+'</div></div>'+
+      '<div style="font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:.6px">฿'+baht(o.total)+'</div></div>'+
       '<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:10px;align-items:center">'+
       '<select id="car_'+o.code+'" style="width:auto">'+CARRIERS.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select>'+
       '<input id="trk_'+o.code+'" type="text" placeholder="เลขพัสดุ เช่น KEX1234567890" style="flex:1;min-width:190px">'+
       (o.status==='approved'? '<button class="btn sm ghost" onclick="packOrder(\''+esc(o.code)+'\')">เริ่มแพ็ก</button>':'')+
       '<button class="btn sm" onclick="shipOrder(\''+esc(o.code)+'\')">บันทึกการจัดส่ง</button></div></div>';
-    }).join('') : '<p style="color:var(--ink-2);font-size:14px">ไม่มีคำสั่งซื้อที่รอจัดส่งในขณะนี้</p>')+'</div>'+
+    }).join('') : '<p style="color:var(--ink-2);font-size:15px">ไม่มีคำสั่งซื้อที่รอจัดส่งในขณะนี้</p>')+'</div>'+
 
     '<div class="panel" style="margin-bottom:18px"><h3>อยู่ระหว่างขนส่ง ('+moving.length+')</h3>'+
     (moving.length? '<div class="tblwrap"><table><tr><th>เลขที่</th><th>ลูกค้า</th><th>ขนส่ง</th><th>เลขพัสดุ</th><th>อัปเดตล่าสุด</th><th></th></tr>'+
@@ -4251,18 +4361,18 @@ function adminShip(){
         '<td class="mono">'+(lk? '<a href="'+esc(lk)+'" target="_blank" rel="noopener" style="color:var(--leaf)">'+esc(o.tracking_no)+'</a>' : esc(o.tracking_no))+'</td>'+
         '<td style="font-size:13px">'+esc(thaiDate(o.updated_at))+'</td>'+
         '<td><button class="btn sm leaf" onclick="deliverOrder(\''+esc(o.code)+'\')">ยืนยันส่งถึงแล้ว</button></td></tr>';
-      }).join('')+'</table></div>' : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีพัสดุที่อยู่ระหว่างขนส่ง</p>')+'</div>'+
+      }).join('')+'</table></div>' : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีพัสดุที่อยู่ระหว่างขนส่ง</p>')+'</div>'+
 
     '<div class="panel"><h3>ปิดงานแล้ว ('+done.length+')</h3>'+
     (done.length? '<div class="tblwrap"><table><tr><th>เลขที่</th><th>ลูกค้า</th><th>ขนส่ง</th><th>ยอด</th></tr>'+
       done.map(function(o){return '<tr><td class="mono">'+esc(o.code)+'</td><td>'+esc(o.receiver_name)+'</td><td>'+esc(o.carrier)+'</td><td>฿'+baht(o.total)+'</td></tr>';}).join('')+
-      '</table></div>' : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีคำสั่งซื้อที่ปิดงาน</p>')+'</div>';
+      '</table></div>' : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีคำสั่งซื้อที่ปิดงาน</p>')+'</div>';
 }
 
 /* ---------- 39) จัดการสมาชิก ---------- */
 function adminMembers(){
   return '<div class="panel"><h3>สมาชิก ('+DB.members.length+' ราย)</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 14px">'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 14px">'+
     'ใช้ดูประวัติการสั่งซื้อของลูกค้าประกอบการอนุมัติ และปรับสถานะบัญชีเมื่อพบพฤติกรรมผิดปกติ '+
     'บัญชีที่ถูกระงับจะสั่งซื้อและร่วมประมูลไม่ได้</p>'+
     '<div class="tblwrap"><table>'+
@@ -4292,15 +4402,15 @@ function adminMsg(){
       return '<div class="review" style="'+(m.is_read?'opacity:.6':'')+'"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">'+
       '<b>'+esc(m.name)+' <span style="font-weight:400;color:var(--ink-2);font-size:13px">· '+esc(m.email)+'</span></b>'+
       '<span class="chip">'+esc(m.topic)+'</span></div>'+
-      '<div style="font-size:14px;color:var(--ink-2)">'+esc(m.body)+'</div>'+
+      '<div style="font-size:15px;color:var(--ink-2)">'+esc(m.body)+'</div>'+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'+
       '<small class="mono" style="color:#9AAAA0">'+esc(thaiDate(m.created_at))+'</small>'+
       (m.is_read?'<span class="sku">อ่านแล้ว</span>':'<button class="btn sm ghost" onclick="markRead('+m.id+')">ทำเครื่องหมายว่าอ่านแล้ว</button>')+
       '</div></div>';
-    }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีข้อความใหม่</p>')+'</div>'+
+    }).join('') : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีข้อความใหม่</p>')+'</div>'+
 
     '<div class="panel"><h3>รีวิวจากลูกค้า ('+rv.length+')</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 12px">'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 12px">'+
     'ทุกรีวิวมาจากผู้ที่ซื้อสินค้าจริงและได้รับของแล้ว หากพบข้อความไม่เหมาะสมหรือโฆษณาแฝง ผู้ดูแลลบได้ '+
     'การลบจะถูกบันทึกไว้ในประวัติการทำงาน</p>'+
     (rv.length? rv.map(function(r){
@@ -4308,17 +4418,17 @@ function adminMsg(){
       '<b>'+esc(r.author_name)+' <span class="verified">ซื้อจริง</span></b>'+
       '<span class="stars">'+starRow(r.stars)+'</span></div>'+
       '<div class="sku">'+esc(r.products? r.products.name : 'สินค้าถูกลบแล้ว')+'</div>'+
-      '<div style="font-size:14px;color:var(--ink-2)">'+esc(r.body)+'</div>'+
+      '<div style="font-size:15px;color:var(--ink-2)">'+esc(r.body)+'</div>'+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px">'+
       '<small class="mono" style="color:#9AAAA0">'+esc(thaiDate(r.created_at))+'</small>'+
       '<button class="btn sm danger" onclick="adminDelReview('+r.id+', \''+esc(String(r.author_name).replace(/'/g,''))+'\')">ลบรีวิว</button>'+
       '</div></div>';
-    }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีรีวิวจากลูกค้า</p>')+
+    }).join('') : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีรีวิวจากลูกค้า</p>')+
     '<h3 style="margin-top:20px">คะแนนเฉลี่ยรายสินค้า</h3>'+
     (Object.keys(DB.ratings).length? DB.products.filter(function(p){return DB.ratings[p.id];}).map(function(p){
       var r2=DB.ratings[p.id];
       return '<div class="sum"><span>'+esc(p.name)+'</span><b><span class="stars">'+starRow(r2.avg)+'</span> '+r2.avg+' ('+r2.n+')</b></div>';
-    }).join('') : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีคะแนนรีวิว</p>')+
+    }).join('') : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีคะแนนรีวิว</p>')+
     '</div></div>';
 }
 
@@ -4432,7 +4542,7 @@ async function boot(){
       '<div style="width:90px">'+art('fern')+'</div>'+
       '<h2 style="font-family:var(--display);font-weight:600;margin:8px 0 4px">เชื่อมต่อฐานข้อมูลไม่สำเร็จ</h2>'+
       '<p style="color:var(--ink-2);max-width:44ch">'+esc(errMsg(e))+'</p>'+
-      '<p style="color:var(--ink-2);font-size:13.5px;max-width:44ch">ลองใหม่แล้ว 3 ครั้งแต่ยังไม่สำเร็จ '+
+      '<p style="color:var(--ink-2);font-size:13px;max-width:44ch">ลองใหม่แล้ว 3 ครั้งแต่ยังไม่สำเร็จ '+
       'หากเพิ่งเปิดเว็บครั้งแรกในรอบหลายวัน ฐานข้อมูลอาจกำลังตื่นจากโหมดพัก รอสักครู่แล้วกดลองใหม่</p>'+
       '<button class="btn" onclick="location.reload()">ลองใหม่อีกครั้ง</button></div></div>';
   }
@@ -4443,18 +4553,18 @@ boot();
 function adminAudit(){
   var logs = DB.audit || [];
   return '<div class="panel"><h3>บันทึกการทำงานของผู้ดูแล ('+logs.length+' รายการล่าสุด)</h3>'+
-    '<p style="color:var(--ink-2);font-size:13.5px;margin:-8px 0 14px">'+
+    '<p style="color:var(--ink-2);font-size:13px;margin:-8px 0 14px">'+
     'ระบบบันทึกการแก้ไขสินค้า การปรับสต็อก และการเปลี่ยนสถานะบัญชีโดยอัตโนมัติ '+
     'บันทึกนี้แก้ไขและลบไม่ได้ เพื่อให้ตรวจสอบย้อนหลังได้ว่าใครทำอะไรเมื่อไร</p>'+
     (logs.length? '<div class="tblwrap"><table><tr><th>เวลา</th><th>ผู้ดำเนินการ</th><th>การกระทำ</th><th>รายการ</th><th>รายละเอียด</th></tr>'+
       logs.map(function(l){
-        return '<tr><td class="mono" style="font-size:12.5px;white-space:nowrap">'+esc(thaiDate(l.created_at))+'</td>'+
+        return '<tr><td class="mono" style="font-size:13px;white-space:nowrap">'+esc(thaiDate(l.created_at))+'</td>'+
         '<td>'+esc(l.actor_name)+'</td>'+
         '<td><span class="chip">'+esc(l.action)+'</span></td>'+
         '<td>'+esc(l.target)+'</td>'+
         '<td style="font-size:13px;color:var(--ink-2)">'+esc(l.detail)+'</td></tr>';
       }).join('')+'</table></div>'
-      : '<p style="color:var(--ink-2);font-size:14px">ยังไม่มีการเปลี่ยนแปลงข้อมูลที่ถูกบันทึก</p>')+
+      : '<p style="color:var(--ink-2);font-size:15px">ยังไม่มีการเปลี่ยนแปลงข้อมูลที่ถูกบันทึก</p>')+
     '</div>';
 }
 
@@ -4473,18 +4583,18 @@ function printSlip(code){
         '<div><div class="slipbrand">GreenPlant</div>'+
         '<div class="sku">ร้านต้นไม้และของแต่งสวนออนไลน์<br>โทร 02-123-4567 · hello@greenplant.co.th</div></div>'+
         '<div style="text-align:right"><div class="eyebrow">ใบส่งของ / Delivery Note</div>'+
-        '<div class="mono" style="font-size:19px">'+esc(o.code)+'</div>'+
+        '<div class="mono" style="font-size:21px">'+esc(o.code)+'</div>'+
         '<div class="sku">วันที่ '+esc(thaiDate(o.created_at))+'</div></div>'+
       '</div>'+
       '<div class="row2" style="margin:16px 0">'+
-        '<div><b>ผู้รับสินค้า</b><div style="font-size:14px">'+esc(o.receiver_name)+'<br>'+
+        '<div><b>ผู้รับสินค้า</b><div style="font-size:15px">'+esc(o.receiver_name)+'<br>'+
         esc(o.phone)+'<br>'+esc(o.address)+'</div></div>'+
-        '<div><b>ข้อมูลการจัดส่ง</b><div style="font-size:14px">'+
+        '<div><b>ข้อมูลการจัดส่ง</b><div style="font-size:15px">'+
         'ขนส่ง: '+esc(o.carrier||'ยังไม่ได้กำหนด')+'<br>'+
         'เลขพัสดุ: '+esc(o.tracking_no||'-')+'<br>'+
         'ชำระโดย: '+esc(o.payment_method)+'</div></div>'+
       '</div>'+
-      '<table style="width:100%;font-size:14px"><tr><th>รายการ</th><th>ราคา/หน่วย</th><th>จำนวน</th><th style="text-align:right">รวม</th></tr>'+
+      '<table style="width:100%;font-size:15px"><tr><th>รายการ</th><th>ราคา/หน่วย</th><th>จำนวน</th><th style="text-align:right">รวม</th></tr>'+
       items.map(function(i){
         return '<tr><td>'+esc(i.product_name)+'</td><td>฿'+baht(i.unit_price)+'</td><td>'+i.qty+'</td>'+
         '<td style="text-align:right">฿'+baht(Number(i.unit_price)*i.qty)+'</td></tr>';
@@ -4534,7 +4644,7 @@ function openBulkImages(){
     var cur = (p.images && p.images.length) ? p.images.length : (p.image_url ? 1 : 0);
     return '<tr>'+
       '<td><div style="width:40px;height:40px;background:#EDF3EC;border-radius:8px;overflow:hidden;display:grid;place-items:center">'+pic(p)+'</div></td>'+
-      '<td><b style="font-size:13.5px">'+esc(p.name)+'</b><div class="sku">'+esc(p.sku)+
+      '<td><b style="font-size:13px">'+esc(p.name)+'</b><div class="sku">'+esc(p.sku)+
         (cur? ' · มีรูปแล้ว '+cur+' รูป' : ' · ยังไม่มีรูป')+'</div></td>'+
       '<td><a class="btn sm ghost" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" '+
         'href="'+esc(pxLink(p.sku))+'">เปิดหน้าค้นหา</a></td>'+
@@ -4546,7 +4656,7 @@ function openBulkImages(){
     '<div class="modal" role="dialog" aria-modal="true" style="max-width:840px">'+
     '<button class="closex" onclick="closeModal()" aria-label="ปิด">✕</button>'+
     '<div class="eyebrow">Bulk Product Images</div>'+
-    '<h2 style="font-family:var(--display);font-size:24px;margin:6px 0 6px;font-weight:600;line-height:1.45">ใส่รูปสินค้าทีเดียวทั้งแคตตาล็อก</h2>'+
+    '<h2 style="font-family:var(--display);font-size:26px;margin:6px 0 6px;font-weight:600;line-height:1.45">ใส่รูปสินค้าทีเดียวทั้งแคตตาล็อก</h2>'+
     '<div class="note" style="margin-bottom:14px"><b>วิธีใช้</b> · กดปุ่มเปิดหน้าค้นหาของสินค้าแต่ละชิ้น '+
       'จะเปิดแท็บใหม่ไปที่ Pexels พร้อมคำค้นที่เหมาะกับสินค้านั้นแล้ว · '+
       'เลือกรูปที่ชอบ กดเข้าไป แล้วดูตัวเลขท้าย URL เช่น pexels.com/photo/xxx-<b>18343648</b>/ · '+
