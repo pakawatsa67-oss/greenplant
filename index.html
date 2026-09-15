@@ -1247,31 +1247,6 @@ async function setMemberStatus(uid, v){
   }catch(e){ toast(errMsg(e)); }
   finally{ setBusy(false); }
 }
-async function setMemberLimit(uid, v){
-  var n = Number(v);
-  if(!(n>=0)){ toast('วงเงินต้องเป็นตัวเลขไม่ติดลบ'); return; }
-  setBusy(true);
-  try{
-    var r = await sb.from('profiles').update({credit_limit:n}).eq('id', uid);
-    if(r.error) throw r.error;
-    await loadAdmin();
-    toast('ปรับวงเงินเป็น ฿'+baht(n)+' แล้ว');
-    render();
-  }catch(e){ toast(errMsg(e)); }
-  finally{ setBusy(false); }
-}
-async function clearDebt(uid){
-  setBusy(true);
-  try{
-    var r = await sb.rpc('admin_clear_credit', {p_user:uid});
-    if(r.error) throw r.error;
-    await loadAdmin();
-    if(S.user && S.user.id===uid) await loadProfile();
-    toast('ล้างยอดค้างของสมาชิกรายนี้แล้ว');
-    render();
-  }catch(e){ toast(errMsg(e)); }
-  finally{ setBusy(false); }
-}
 async function markRead(id){
   var r = await sb.from('messages').update({is_read:true}).eq('id', id);
   if(!r.error){ await loadAdmin(); render(); }
@@ -2018,8 +1993,7 @@ function shipFee(){
   return s>=1000?0:60;
 }
 function discount(){ return S.coupon ? Number(S.coupon.discount) : 0; }
-function grandTotal(){ return Math.max(0, cartSub() - discount() + shipFee() + codFee()); }
-function codFee(){ return S.checkout.pay.indexOf('ปลายทาง')>-1 ? 20 : 0; }
+function grandTotal(){ return Math.max(0, cartSub() - discount() + shipFee()); }
 /* จำนวนสินค้าชิ้นนี้ที่อยู่ในตะกร้าแล้ว */
 function inCart(id){
   var n=0; S.cart.forEach(function(c){ if(c.id===id) n+=c.qty; });
@@ -2499,7 +2473,7 @@ function viewCheckout(){
       '<p>ยังไม่มีสินค้าในตะกร้า จึงยังดำเนินการสั่งซื้อไม่ได้</p>'+
       '<button class="btn" onclick="go(\'shop\')">เลือกซื้อสินค้า</button></div></section></div>';
   }
-  var c=S.checkout, sub=cartSub(), sh=shipFee(), cod=codFee();
+  var c=S.checkout, sub=cartSub(), sh=shipFee();
   var body='';
   if(S.step===1){
     body='<div class="panel"><h3>ข้อมูลผู้รับสินค้า</h3>'+
@@ -2580,7 +2554,6 @@ function viewCheckout(){
       '<div class="sum" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span>ยอดรวมสินค้า</span><b>฿'+baht(sub)+'</b></div>'+
       (S.coupon? '<div class="sum" style="color:var(--leaf)"><span>ส่วนลด ('+esc(S.coupon.code)+')</span><b>−฿'+baht(discount())+'</b></div>':'')+
       '<div class="sum"><span>ค่าจัดส่ง</span><b>'+(sh?'฿'+baht(sh):'ฟรี')+'</b></div>'+
-      (cod?'<div class="sum"><span>ค่าบริการเก็บเงินปลายทาง</span><b>฿'+baht(cod)+'</b></div>':'')+
       '<div class="sum total"><span>รวมทั้งสิ้น</span><span>฿'+baht(grandTotal())+'</span></div>'+
     '</div></div></section></div>';
 }
