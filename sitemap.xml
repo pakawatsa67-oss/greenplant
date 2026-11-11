@@ -6,5 +6,7 @@
   <url><loc>https://greenplant-woad.vercel.app/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://greenplant-woad.vercel.app/compare</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://greenplant-woad.vercel.app/track</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://greenplant-woad.vercel.app/legal</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://greenplant-woad.vercel.app/privacy</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://greenplant-woad.vercel.app/terms</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://greenplant-woad.vercel.app/returns</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
 </urlset>
